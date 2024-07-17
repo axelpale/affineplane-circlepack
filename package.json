@@ -1,0 +1,31 @@
+{
+  "name": "affineplane-circlepack",
+  "version": "1.0.0",
+  "description": "Fast order-preserving circle packing algorithm for data visualization",
+  "main": "index.js",
+  "scripts": {
+    "lint": "standard",
+    "test": "npm run lint && npm run test:unit",
+    "test:unit": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/axelpale/affineplane-circlepack.git"
+  },
+  "keywords": [
+    "circle",
+    "packing",
+    "layout",
+    "visualization"
+  ],
+  "author": "Akseli Palén <akseli.palen@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/axelpale/affineplane-circlepack/issues"
+  },
+  "homepage": "https://github.com/axelpale/affineplane-circlepack#readme",
+  "devDependencies": {
+    "standard": "^17.1.0",
+    "tape": "^5.8.1"
+  }
+}
