@@ -106,12 +106,12 @@ Tile.prototype.overlap = function (c) {
   // Return:
   //   an array of circle2
   //
-  let colliders = []
+  const colliders = []
 
   if (this.leaf) {
     // No subtiles yet. Just test collisions in linear manner.
     const n = this.circles.length
-    let b, dx, dy
+    let b, dx, dy, rr
     for (let i = 0; i < n; i += 1) {
       b = this.circles[i]
       dx = c.x - b.x

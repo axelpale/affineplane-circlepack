@@ -91,12 +91,15 @@ test('basic tile overlap', (t) => {
     { x: 1.8, y: 0.2, r: 0.1 }, // At top right corner
     { x: 0.2, y: 1.8, r: 0.1 }, // At bottom left corner
     { x: 1.8, y: 1.8, r: 0.1 }, // At bottom right corner
-    { x: 1, y: 1, r: 0.1 }, // Overlap all subtiles, small.
+    { x: 1, y: 1, r: 0.1 } // Overlap all subtiles, small.
   ]
   cs.forEach(c => tile.add(c))
 
   const lap0 = tile.overlap({ x: 1, y: 1, r: 0.5 })
   t.equal(lap0.length, 10, 'should skip the corners')
+
+  const lap1 = tile.overlap({ x: 1.5, y: 0.5, r: 0.45 })
+  t.equal(lap1.length, 5, 'should include one corner')
 
   t.end()
 })
