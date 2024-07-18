@@ -27,5 +27,8 @@
   "devDependencies": {
     "standard": "^17.1.0",
     "tape": "^5.8.1"
+  },
+  "dependencies": {
+    "affineplane": "^2.19.0"
   }
 }
