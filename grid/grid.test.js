@@ -11,12 +11,17 @@ test('basic grid add', (t) => {
   grid.add(c1)
   grid.add(c2)
 
+  t.equal(grid.size, 3, 'should count circles')
+
   const lap0 = grid.overlap({ x: 1, y: 1, r: 1 })
   t.equal(lap0.length, 2, 'should hit the first two')
 
   const lap1 = grid.overlap({ x: 5, y: 3, r: 2 })
   t.equal(lap1.length, 1, 'should hit one')
   t.equal(lap1[0], c2, 'should hit the last')
+
+  t.equal(grid.collide({ x: 5, y: 3, r: 2 }), true, 'should hit one')
+  t.equal(grid.collide({ x: 0, y: 2, r: 1 }), false, 'should hit none')
 
   t.end()
 })
