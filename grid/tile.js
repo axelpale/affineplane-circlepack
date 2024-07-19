@@ -36,6 +36,10 @@ Tile.prototype.add = function (c) {
   // Add a circle to the tile.
   // The addition might be propagated to subtiles.
   //
+  // Parameters:
+  //   c
+  //     a circle2
+  //
 
   // Normalized circle coordinates on the tile.
   const xminNorm = (c.x - c.r - this.x) / this.w
@@ -83,8 +87,35 @@ Tile.prototype.add = function (c) {
   }
 }
 
+Tile.prototype.collect = function () {
+  // Collect and return all circles in the tile and its subtiles.
+  //
+  // Return:
+  //   an array of circle2
+  //
+  const bag = []
+  // Collect local circles.
+  bag.push(...this.circles)
+  // Collect circles in subtiles.
+  let subs
+  for (let t = 0; t < this.subtiles.length; t += 1) {
+    subs = this.subtiles[t].collect()
+    bag.push(...subs)
+  }
+
+  // Remove duplicates.
+  return Array.from(new Set(bag))
+}
+
 Tile.prototype.collide = function (c) {
   // Test if the circle collides with another circle.
+  //
+  // Parameters:
+  //   c
+  //     a circle2
+  //
+  // Return:
+  //   a boolean
   //
 
   // For top circles, just test collisions in linear manner.
@@ -189,6 +220,10 @@ Tile.prototype.divide = function () {
 Tile.prototype.overlap = function (c) {
   // Find circles that overlap c.
   //
+  // Parameters:
+  //   c
+  //     a circle2
+  //
   // Return:
   //   an array of circle2
   //
@@ -245,6 +280,9 @@ Tile.prototype.overlap = function (c) {
 
 Tile.prototype.depth = function () {
   // Measure depth. This requires full subtile tree search.
+  //
+  // Return:
+  //   an integer
   //
   if (this.leaf || this.size === 0) {
     return 0

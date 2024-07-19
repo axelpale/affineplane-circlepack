@@ -9,6 +9,7 @@ test('basic tile divide', (t) => {
   t.equal(tile.leaf, false, 'should not be leaf anymore')
 
   t.equal(tile.size, 0, 'should be empty')
+  t.deepEqual(tile.collect(), [], 'should be empty')
 
   const t00 = tile.subtiles[0]
   const t10 = tile.subtiles[1]
@@ -138,6 +139,9 @@ test('basic tile collide', (t) => {
 
   t.equal(tile.collide({ x: 0, y: 0, r: 0 }), true, 'should collide at the middle')
   t.equal(tile.collide({ x: 9, y: 9, r: 1 }), false, 'should not collide at b-right')
+
+  const collection = tile.collect()
+  t.equal(collection.length, cs.length, 'should collect all circles')
 
   t.end()
 })
