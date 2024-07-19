@@ -3,21 +3,23 @@ const random = Math.random
 
 // Generate 1M circles
 const n = 1000000
-// Test collision 1M times
-const m = 1000000
+// Test collision 100k times
+const m = 100000
+
+const MAX_RADIUS = 10
 
 // Area
 const gen = () => {
   const x = random() * 1000 - 300
   const y = random() * 1000 - 300
-  const r = random() * 20
+  const r = random() * MAX_RADIUS
   return { x, y, r }
 }
 
 console.log('Generating...')
 console.time('generation')
 
-const grid = new CircleGrid(20)
+const grid = new CircleGrid(MAX_RADIUS)
 for (let i = 0; i < n; i += 1) {
   const c = gen()
   grid.add(c)
@@ -59,4 +61,4 @@ for (let i = 0; i < m; i += 1) {
 console.timeEnd('overlaps')
 
 console.log('Overlaps performed:', m)
-console.log('Circles found:', found)
+console.log('Circles found per overlap:', Math.round(found / m))

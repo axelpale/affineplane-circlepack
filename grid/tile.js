@@ -22,10 +22,16 @@ const Tile = function (x0, y0, width, height) {
     throw new Error('zero height')
   }
 
+  // Box
   this.x = x0
   this.y = y0
   this.w = width
   this.h = height
+  // Bounding circle
+  this.cx = x0 + width / 2
+  this.cy = y0 + height / 2
+  this.cr = Math.sqrt(width * width + height * height) / 2
+  // Children
   this.leaf = true
   this.circles = []
   this.subtiles = []
@@ -229,8 +235,15 @@ Tile.prototype.overlap = function (c) {
   //
   const colliders = []
 
-  // TODO OPTIMIZE if c covers a tile in full
-  // skip all test and return all circles that touch the tile.
+  // Optimization: test if the circle covers the tile in full.
+  const dcx = this.cx - c.x
+  const dcy = this.cy - c.y
+  const dcr = this.cr - c.r
+  if (dcr <= 0 && dcx * dcx + dcy * dcy <= dcr * dcr) {
+    // The tile is inside the circle in full.
+    // Skip all collision checks.
+    return this.collect()
+  }
 
   // For top circles, just test collisions in linear manner.
   const n = this.circles.length
