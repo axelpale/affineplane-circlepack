@@ -93,10 +93,9 @@ Tile.prototype.add = function (c) {
     // The circle occupies all tiles. Keep it here.
     this.circles.push(c)
   } else {
-    // Add to subset of subtiles.
+    // Add the circle to subset of subtiles.
     for (let y = ymin; y <= ymax; y += 1) {
       for (let x = xmin; x <= xmax; x += 1) {
-        // Add the circle to all these subtiles.
         const t = y * DIM + x
         this.subtiles[t].add(c)
       }
@@ -194,6 +193,7 @@ Tile.prototype.divide = function () {
     return
   }
 
+  // Create the subtiles.
   const subw = this.w / DIM
   const subh = this.h / DIM
   for (let y = 0; y < DIM; y += 1) {
