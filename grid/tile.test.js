@@ -108,10 +108,10 @@ test('basic tile overlap', (t) => {
   t.equal(tile.subtiles.length, 4, 'should have created subtiles')
   t.equal(tile.depth(), 1, 'should have one layer of subtiles')
 
-  const lap0 = tile.overlap({ x: 1, y: 1, r: 0.5 })
+  const lap0 = tile.overlap({ x: 1, y: 1, r: 0.5 }, true)
   t.equal(lap0.length, 10, 'should skip the corners')
 
-  const lap1 = tile.overlap({ x: 1.5, y: 0.5, r: 0.45 })
+  const lap1 = tile.overlap({ x: 1.5, y: 0.5, r: 0.45 }, true)
   t.equal(lap1.length, 5, 'should include one corner')
 
   t.end()
@@ -141,7 +141,9 @@ test('basic tile collide', (t) => {
   t.equal(tile.collide({ x: 9, y: 9, r: 1 }), false, 'should not collide at b-right')
 
   const collection = tile.collect()
-  t.equal(collection.length, cs.length, 'should collect all circles')
+  t.ok(collection.length > cs.length, 'should collect some circles twice')
+  const unique = tile.collect(true)
+  t.equal(unique.length, cs.length, 'should collect all circles once')
 
   t.end()
 })

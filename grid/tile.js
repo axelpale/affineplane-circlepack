@@ -100,8 +100,12 @@ Tile.prototype.add = function (c) {
   }
 }
 
-Tile.prototype.collect = function () {
+Tile.prototype.collect = function (unique) {
   // Collect and return all circles in the tile and its subtiles.
+  //
+  // Parameters:
+  //   unique
+  //     optional boolean, default is false. Set true to return unique circles (slower).
   //
   // Return:
   //   an array of circle2
@@ -109,15 +113,17 @@ Tile.prototype.collect = function () {
   const bag = []
   // Collect local circles.
   bag.push(...this.circles)
-  // Collect circles in subtiles.
-  let subs
+  // Collect circles in subtiles if any.
   for (let t = 0; t < this.subtiles.length; t += 1) {
-    subs = this.subtiles[t].collect()
+    const subs = this.subtiles[t].collect()
     bag.push(...subs)
   }
 
-  // Remove duplicates.
-  return Array.from(new Set(bag))
+  if (unique) {
+    // Remove duplicates.
+    return Array.from(new Set(bag))
+  }
+  return bag
 }
 
 Tile.prototype.collide = function (c) {
@@ -231,17 +237,18 @@ Tile.prototype.divide = function () {
   this.leaf = false
 }
 
-Tile.prototype.overlap = function (c) {
+Tile.prototype.overlap = function (c, unique) {
   // Find circles that overlap c.
   //
   // Parameters:
   //   c
   //     a circle2
+  //   unique
+  //     optional boolean, default is false. Set true to return unique circles (slower).
   //
   // Return:
   //   an array of circle2
   //
-  const colliders = []
 
   // Optimization: test if the circle covers the tile in full.
   const dcx = this.cx - c.x
@@ -252,6 +259,8 @@ Tile.prototype.overlap = function (c) {
     // Skip all collision checks.
     return this.collect()
   }
+
+  const colliders = []
 
   // For top circles, just test collisions in linear manner.
   const n = this.circles.length
@@ -271,7 +280,7 @@ Tile.prototype.overlap = function (c) {
     return colliders
   }
 
-  // Reduce overlap from the subtiles.
+  // Find overlapping circles in the subtiles.
 
   // Normalized circle coordinates on the tile.
   const xminNorm = (c.x - c.r - this.x) / this.w
@@ -295,8 +304,11 @@ Tile.prototype.overlap = function (c) {
     }
   }
 
-  // Remove duplicates.
-  return Array.from(new Set(colliders))
+  if (unique) {
+    // Remove duplicates.
+    return Array.from(new Set(colliders))
+  }
+  return colliders
 }
 
 Tile.prototype.depth = function () {

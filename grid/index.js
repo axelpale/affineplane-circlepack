@@ -157,7 +157,10 @@ CircleGrid.prototype.overlap = function (c) {
     }
   }
 
-  return colliders
+  // Finding overlaps can return duplicates.
+  // Remove duplicates to return unique circles.
+  const unique = Array.from(new Set(colliders))
+  return unique
 }
 
 CircleGrid.prototype.depth = function () {
