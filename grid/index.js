@@ -1,4 +1,5 @@
 const Tile = require('./tile')
+const ROOM = 2048 // circles per tile
 
 const CircleGrid = function (maxRadius) {
   // An infinite grid where each cell is quadtree structure.
@@ -58,7 +59,7 @@ CircleGrid.prototype.add = function (c) {
       } else {
         // Create the tile.
         this.tiles += 1
-        index[x][y] = new Tile(x * s, y * s, s, s)
+        index[x][y] = new Tile(x * s, y * s, s, s, ROOM)
         index[x][y].add(c)
       }
     }

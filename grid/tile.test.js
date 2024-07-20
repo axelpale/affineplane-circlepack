@@ -2,7 +2,7 @@ const Tile = require('./tile')
 const test = require('tape')
 
 test('basic tile divide', (t) => {
-  const tile = new Tile(0, 0, 2, 2)
+  const tile = new Tile(0, 0, 2, 2, 8)
 
   t.equal(tile.leaf, true, 'should be leaf')
   tile.divide()
@@ -40,7 +40,7 @@ test('basic tile divide', (t) => {
 })
 
 test('basic tile add and divide', (t) => {
-  const tile = new Tile(0, 0, 2, 2)
+  const tile = new Tile(0, 0, 2, 2, 8)
 
   const c0 = { x: 1, y: 1, r: 0.8 } // Overlap all subtiles
   const c1 = { x: 0.5, y: 1.5, r: 0.4 } // Fully inside bottom-left subtile
@@ -83,7 +83,7 @@ test('basic tile add and divide', (t) => {
 
 test('basic tile overlap', (t) => {
   // Populate a tile
-  const tile = new Tile(0, 0, 2, 2)
+  const tile = new Tile(0, 0, 2, 2, 8)
   const cs = [
     { x: 1, y: 1, r: 0.9 }, // Overlap all subtiles, large.
     { x: 0.5, y: 0.5, r: 0.45 }, // Fully inside top-left subtile
@@ -119,7 +119,7 @@ test('basic tile overlap', (t) => {
 
 test('basic tile collide', (t) => {
   // Populate a tile
-  const tile = new Tile(-10, -10, 10, 10)
+  const tile = new Tile(-10, -10, 10, 10, 8)
   const cs = [
     { x: 0, y: 0, r: 9 }, // Overlap all subtiles, large.
     { x: -9, y: -7, r: 0.5 }, // Top left corner
@@ -147,7 +147,7 @@ test('basic tile collide', (t) => {
 })
 
 test('add full room of identical circles', (t) => {
-  const tile = new Tile(0, 0, 2, 2)
+  const tile = new Tile(0, 0, 2, 2, 8)
 
   // Create circles with identical coordinates.
   for (let i = 0; i < 20; i += 1) {

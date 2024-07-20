@@ -2,16 +2,21 @@ const min = Math.min
 const max = Math.max
 const floor = Math.floor
 const DIM = 2
-const ROOM = 8
 
-const Tile = function (x0, y0, width, height) {
+const Tile = function (x0, y0, width, height, room) {
   // A quad-tree tile structure.
   //
   // Parameters:
   //   x0
+  //     a number. The top-left corner x-coordinate.
   //   y0
+  //     a number. The top-left corner y-coordinate.
   //   width
+  //     a number. The tile width.
   //   height
+  //     a number. The tile height.
+  //   room
+  //     an integer. The number of items the tile can hold before division to subtiles.
   //
 
   // DEBUG
@@ -22,6 +27,8 @@ const Tile = function (x0, y0, width, height) {
     throw new Error('zero height')
   }
 
+  // Hierarchy
+  this.room = room
   // Box
   this.x = x0
   this.y = y0
@@ -65,7 +72,7 @@ Tile.prototype.add = function (c) {
   // If still a leaf, just push. If too large, push and divide.
   if (this.leaf) {
     this.circles.push(c)
-    if (this.circles.length > ROOM) {
+    if (this.circles.length > this.room) {
       this.divide()
     }
     return
@@ -185,7 +192,8 @@ Tile.prototype.divide = function () {
         this.x + x * subw,
         this.y + y * subh,
         subw,
-        subh
+        subh,
+        this.room
       ))
     }
   }

@@ -3,9 +3,9 @@ const random = Math.random
 const powerlaw = (xmin, alpha) => xmin * (1 - random()) ** (-1 / (alpha - 1))
 
 // Generate 1M circles
-const n = 1000000
+const n = 4000000
 // Test collision 100k times
-const m = 100000
+const m = 20000
 
 const MAX_RADIUS = 10
 
