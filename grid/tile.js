@@ -1,5 +1,6 @@
 const min = Math.min
 const max = Math.max
+const abs = Math.abs
 const floor = Math.floor
 const DIM = 2
 
@@ -20,10 +21,10 @@ const Tile = function (x0, y0, width, height, room) {
   //
 
   // DEBUG
-  if (Math.abs(width) < 0.0000001) {
+  if (abs(width) < 0.0000001) {
     throw new Error('zero width')
   }
-  if (Math.abs(height) < 0.0000001) {
+  if (abs(height) < 0.0000001) {
     throw new Error('zero height')
   }
 
@@ -148,7 +149,7 @@ Tile.prototype.collide = function (c) {
     dx = c.x - b.x
     dy = c.y - b.y
     rr = c.r + b.r
-    if (dx * dx + dy * dy < rr * rr) {
+    if (abs(dx) + abs(dy) < rr && dx * dx + dy * dy < rr * rr) {
       return true
     }
   }
@@ -275,7 +276,7 @@ Tile.prototype.overlap = function (c, unique) {
     dx = c.x - b.x
     dy = c.y - b.y
     rr = c.r + b.r
-    if (dx * dx + dy * dy < rr * rr) {
+    if (abs(dx) + abs(dy) < rr && dx * dx + dy * dy < rr * rr) {
       colliders.push(b)
     }
   }
