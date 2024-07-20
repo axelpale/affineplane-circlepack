@@ -25,3 +25,14 @@ test('basic grid add', (t) => {
 
   t.end()
 })
+
+test('huge node', (t) => {
+  const grid = new CircleGrid(10)
+  const big = { x: 0, y: 0, r: 1000000 }
+  grid.add(big)
+
+  t.equal(grid.size, 1, 'should allow the big circle')
+  t.equal(grid.tiles, 0, 'should not create tiles for it')
+
+  t.end()
+})

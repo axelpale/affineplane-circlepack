@@ -1,5 +1,6 @@
 const CircleGrid = require('./index')
 const random = Math.random
+const powerlaw = (xmin, alpha) => xmin * (1 - random()) ** (-1 / (alpha - 1))
 
 // Generate 1M circles
 const n = 1000000
@@ -8,11 +9,13 @@ const m = 100000
 
 const MAX_RADIUS = 10
 
-// Area
+// Define area to be filled with circles and their radii.
 const gen = () => {
   const x = random() * 1000 - 300
   const y = random() * 1000 - 300
-  const r = random() * MAX_RADIUS
+  // const r = random() * MAX_RADIUS // Uniform radius distribution -> medium to large sized dominate
+  const r = powerlaw(1, 2.8) // Power-law distribution -> small dominate but very large ones possible
+  if (r > 1000) console.log('Note: circle with large radius:', r)
   return { x, y, r }
 }
 

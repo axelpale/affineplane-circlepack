@@ -16,6 +16,8 @@ const CircleGrid = function (maxRadius) {
 
   // Save grid here. Use object to support negative indices.
   this.index = {}
+  // Save large circles separately. Otherwise even one circle could generate a million tiles.
+  this.large = []
   // Total number of circles stored.
   this.size = 0
   this.tiles = 0
@@ -33,8 +35,14 @@ CircleGrid.prototype.add = function (c) {
   const ymin = Math.floor((c.y - c.r) / s)
   const ymax = Math.floor((c.y + c.r) / s)
 
-  // Add circle to the tiles.
+  // We will add the circle.
   this.size += 1
+
+  // Detect if the circle is large.
+  if (xmax - xmin > 2 && ymax - ymin > 2) {
+    this.large.push(c)
+    return
+  }
 
   // Fill the gaps between coordinates to fill also tiles inside the circle.
   for (let x = xmin; x <= xmax; x += 1) {
@@ -76,6 +84,19 @@ CircleGrid.prototype.collide = function (c) {
   const ymin = Math.floor((c.y - c.r) / s)
   const ymax = Math.floor((c.y + c.r) / s)
 
+  // Test against the large before diving into tiles.
+  const nl = this.large.length
+  let cl, dx, dy, rr
+  for (let i = 0; i < nl; i += 1) {
+    cl = this.large[i]
+    dx = c.x - cl.x
+    dy = c.y - cl.y
+    rr = c.r + cl.r
+    if (dx * dx + dy * dy < rr * rr) {
+      return true
+    }
+  }
+
   for (let x = xmin; x <= xmax; x += 1) {
     if (index[x]) {
       for (let y = ymin; y <= ymax; y += 1) {
@@ -109,6 +130,19 @@ CircleGrid.prototype.overlap = function (c) {
   const ymax = Math.floor((c.y + c.r) / s)
 
   const colliders = []
+
+  // Collect the large before diving into tiles.
+  const nl = this.large.length
+  let cl, dx, dy, rr
+  for (let i = 0; i < nl; i += 1) {
+    cl = this.large[i]
+    dx = c.x - cl.x
+    dy = c.y - cl.y
+    rr = c.r + cl.r
+    if (dx * dx + dy * dy < rr * rr) {
+      colliders.push(cl)
+    }
+  }
 
   for (let x = xmin; x <= xmax; x += 1) {
     if (index[x]) {
