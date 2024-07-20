@@ -43,6 +43,9 @@ const Tile = function (x0, y0, width, height, room) {
   this.circles = []
   this.subtiles = []
   this.size = 0
+  // Precompute normalizers
+  this.nw = DIM / width
+  this.nh = DIM / height
 }
 
 Tile.prototype.add = function (c) {
@@ -55,13 +58,13 @@ Tile.prototype.add = function (c) {
   //
 
   // Normalized circle coordinates on the tile.
-  const xminNorm = (c.x - c.r - this.x) / this.w
-  const xmaxNorm = (c.x + c.r - this.x) / this.w
-  const yminNorm = (c.y - c.r - this.y) / this.h
-  const ymaxNorm = (c.y + c.r - this.y) / this.h
+  const xminNorm = (c.x - c.r - this.x) * this.nw
+  const xmaxNorm = (c.x + c.r - this.x) * this.nw
+  const yminNorm = (c.y - c.r - this.y) * this.nh
+  const ymaxNorm = (c.y + c.r - this.y) * this.nh
 
   // DEBUG Skip circles fully outside the tile.
-  if (xmaxNorm < 0 || xminNorm >= 1 || ymaxNorm < 0 || yminNorm >= 1) {
+  if (xmaxNorm < 0 || xminNorm >= DIM || ymaxNorm < 0 || yminNorm >= DIM) {
     console.warn('The circle is outside the tile and thus skipped: ', c)
     return
   }
@@ -79,10 +82,10 @@ Tile.prototype.add = function (c) {
   }
 
   // Find subtiles. Do not go over the tile boundary.
-  const xmin = max(floor(DIM * xminNorm), 0)
-  const xmax = min(floor(DIM * xmaxNorm), DIM - 1)
-  const ymin = max(floor(DIM * yminNorm), 0)
-  const ymax = min(floor(DIM * ymaxNorm), DIM - 1)
+  const xmin = max(floor(xminNorm), 0)
+  const xmax = min(floor(xmaxNorm), DIM - 1)
+  const ymin = max(floor(yminNorm), 0)
+  const ymax = min(floor(ymaxNorm), DIM - 1)
   // Add the circle to all subtiles, except when it occupies them all,
   // in which case keep the circle at this tile.
   if (xmax - xmin >= DIM - 1 && ymax - ymin >= DIM - 1) {
@@ -158,16 +161,16 @@ Tile.prototype.collide = function (c) {
   // Find a colliding subtile.
 
   // Normalized circle coordinates on the tile.
-  const xminNorm = (c.x - c.r - this.x) / this.w
-  const xmaxNorm = (c.x + c.r - this.x) / this.w
-  const yminNorm = (c.y - c.r - this.y) / this.h
-  const ymaxNorm = (c.y + c.r - this.y) / this.h
+  const xminNorm = (c.x - c.r - this.x) * this.nw
+  const xmaxNorm = (c.x + c.r - this.x) * this.nw
+  const yminNorm = (c.y - c.r - this.y) * this.nh
+  const ymaxNorm = (c.y + c.r - this.y) * this.nh
 
   // Find overlapping subtiles. Do not go over the tile boundary.
-  const xmin = max(floor(DIM * xminNorm), 0)
-  const xmax = min(floor(DIM * xmaxNorm), DIM - 1)
-  const ymin = max(floor(DIM * yminNorm), 0)
-  const ymax = min(floor(DIM * ymaxNorm), DIM - 1)
+  const xmin = max(floor(xminNorm), 0)
+  const xmax = min(floor(xmaxNorm), DIM - 1)
+  const ymin = max(floor(yminNorm), 0)
+  const ymax = min(floor(ymaxNorm), DIM - 1)
 
   for (let y = ymin; y <= ymax; y += 1) {
     for (let x = xmin; x <= xmax; x += 1) {
@@ -209,14 +212,14 @@ Tile.prototype.divide = function () {
   const n = this.circles.length
   for (let i = 0; i < n; i += 1) {
     const c = this.circles[i]
-    const xminNorm = (c.x - c.r - this.x) / this.w
-    const xmaxNorm = (c.x + c.r - this.x) / this.w
-    const yminNorm = (c.y - c.r - this.y) / this.h
-    const ymaxNorm = (c.y + c.r - this.y) / this.h
-    const xmin = max(floor(DIM * xminNorm), 0)
-    const xmax = min(floor(DIM * xmaxNorm), DIM - 1)
-    const ymin = max(floor(DIM * yminNorm), 0)
-    const ymax = min(floor(DIM * ymaxNorm), DIM - 1)
+    const xminNorm = (c.x - c.r - this.x) * this.nw
+    const xmaxNorm = (c.x + c.r - this.x) * this.nw
+    const yminNorm = (c.y - c.r - this.y) * this.nh
+    const ymaxNorm = (c.y + c.r - this.y) * this.nh
+    const xmin = max(floor(xminNorm), 0)
+    const xmax = min(floor(xmaxNorm), DIM - 1)
+    const ymin = max(floor(yminNorm), 0)
+    const ymax = min(floor(ymaxNorm), DIM - 1)
     // except when it occupies them all,
     // in which case keep the circle at this tile.
     if (xmax - xmin >= DIM - 1 && ymax - ymin >= DIM - 1) {
@@ -255,8 +258,10 @@ Tile.prototype.overlap = function (c, unique) {
   const dcy = this.cy - c.y
   const dcr = this.cr - c.r
   if (dcr <= 0 && dcx * dcx + dcy * dcy <= dcr * dcr) {
-    // The tile is inside the circle in full.
-    // Skip all collision checks.
+    // The tile is fully inside the circle.
+    // Because all the circles of the tile overlap the tile,
+    // all those circles overlap the circle too.
+    // Therefore skip all collision checks and return all circles.
     return this.collect()
   }
 
@@ -283,16 +288,16 @@ Tile.prototype.overlap = function (c, unique) {
   // Find overlapping circles in the subtiles.
 
   // Normalized circle coordinates on the tile.
-  const xminNorm = (c.x - c.r - this.x) / this.w
-  const xmaxNorm = (c.x + c.r - this.x) / this.w
-  const yminNorm = (c.y - c.r - this.y) / this.h
-  const ymaxNorm = (c.y + c.r - this.y) / this.h
+  const xminNorm = (c.x - c.r - this.x) * this.nw
+  const xmaxNorm = (c.x + c.r - this.x) * this.nw
+  const yminNorm = (c.y - c.r - this.y) * this.nh
+  const ymaxNorm = (c.y + c.r - this.y) * this.nh
 
   // Find overlapping subtiles. Do not go over the tile boundary.
-  const xmin = max(floor(DIM * xminNorm), 0)
-  const xmax = min(floor(DIM * xmaxNorm), DIM - 1)
-  const ymin = max(floor(DIM * yminNorm), 0)
-  const ymax = min(floor(DIM * ymaxNorm), DIM - 1)
+  const xmin = max(floor(xminNorm), 0)
+  const xmax = min(floor(xmaxNorm), DIM - 1)
+  const ymin = max(floor(yminNorm), 0)
+  const ymax = min(floor(ymaxNorm), DIM - 1)
 
   for (let y = ymin; y <= ymax; y += 1) {
     for (let x = xmin; x <= xmax; x += 1) {
