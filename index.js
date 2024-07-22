@@ -70,10 +70,15 @@ const pack = (circles) => {
 }
 
 // Extend if globally available.
-if (affineplane && affineplane.sphere2) {
-  affineplane.sphere2.pack = pack
+affineplane.sphere2.pack = pack
+affineplane.circle2.pack = pack
+
+// Ensure in-browser availability.
+if (window) {
+  window.affineplane = affineplane
 }
-// Export
+
+// CommonJS export
 if (module && module.exports) {
   module.exports = pack
 }
