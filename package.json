@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "standard",
     "test": "npm run lint && npm run test:unit",
-    "test:unit": "tape test.js"
+    "test:unit": "tape test.js",
+    "build:standalone": "browserify index.js --standalone affineplane-circlepack | uglifyjs > affineplane-circlepack.min.js "
   },
   "repository": {
     "type": "git",
@@ -25,8 +26,10 @@
   },
   "homepage": "https://github.com/axelpale/affineplane-circlepack#readme",
   "devDependencies": {
+    "browserify": "^17.0.0",
     "standard": "^17.1.0",
-    "tape": "^5.8.1"
+    "tape": "^5.8.1",
+    "uglify-js": "^3.19.0"
   },
   "dependencies": {
     "affineplane": "^2.19.0"

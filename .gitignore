@@ -23,6 +23,11 @@ build/Release
 node_modules
 package-lock.json
 
+# Build
+affineplane-circlepack.js
+affineplane-circlepack.min.js
+affineplane-circlepack-*
+
 # Users Environment Variables
 .lock-wscript
 
