@@ -33,16 +33,65 @@
       <a href="https://www.akselipalen.com">Akseli Palén</a>, 2024.
     </p>
     <script>
-        const findTangentRadius = (ca, cb, cc) => {
-          const vab = { x: cb.x - ca.x, y: cb.y - ca.y }
-          const vbc = { x: cc.x - cb.x, y: cc.y - cb.y }
-          const vca = { x: ca.x - cc.x, y: ca.y - cc.y }
-          const dab = Math.sqrt(vab.x * vab.x + vab.y * vab.y)
-          const dbc = Math.sqrt(vbc.x * vbc.x + vbc.y * vbc.y)
-          const dca = Math.sqrt(vca.x * vca.x + vca.y * vca.y)
-          const p = (dab + dbc + dca) / 2
-          const area = Math.sqrt(p * (p - dab) * (p - dbc) * (p - dca))
-          const radius = area / p // (dab * dbc * dca) / (4 * area) // area / p
+        const mean = (v, w) => {
+          return {
+            x: (v.x + w.x) / 2,
+            y: (v.y + w.y) / 2
+          }
+        }
+        const negate = (v) => {
+          return {
+            x: -v.x,
+            y: -v.y
+          }
+        }
+        const norm = (v) => {
+          return Math.sqrt(v.x * v.x + v.y * v.y)
+        }
+        const scale = (v, m) => {
+          return {
+            x: m * v.x,
+            y: m * v.y
+          }
+        }
+        const nadd = (v0, v1, v2) => {
+          return {
+            x: -v0.x + v1.x + v2.x,
+            y: -v0.y + v1.y + v2.y
+          }
+        }
+        const heron = (a, b, c) => {
+          const p = (a + b + c) / 2
+          const area = Math.sqrt(p * (p - a) * (p - b) * (p - c))
+          return area
+        }
+        const exradius = (a, b, c) => {
+          const area = heron(a, b, c)
+          return (a * b * c) / (4 * area)
+        }
+        const findTangentRadius = (a, b, c) => {
+          const vab = { x: b.x - a.x, y: b.y - a.y }
+          const vbc = { x: c.x - b.x, y: c.y - b.y }
+          const vca = { x: a.x - c.x, y: a.y - c.y }
+          const vba = negate(vab)
+          const vcb = negate(vbc)
+          const vac = negate(vca)
+          const vmab = mean(vca, vcb)
+          const vmbc = mean(vab, vac)
+          const vmca = mean(vbc, vba)
+          const dmab = norm(vmab)
+          const dmbc = norm(vmbc)
+          const dmca = norm(vmca)
+          const vra = scale(vmbc, a.r / dmbc)
+          const vrb = scale(vmca, b.r / dmca)
+          const vrc = scale(vmab, c.r / dmab)
+          const tab = nadd(vra, vab, vrb)
+          const tbc = nadd(vrb, vbc, vrc)
+          const tca = nadd(vrc, vca, vra)
+          const dta = norm(tbc)
+          const dtb = norm(tca)
+          const dtc = norm(tab)
+          const radius = exradius(dta, dtb, dtc)
           // console.log(dab, dbc, dca, p, area, radius)
           return Math.max(radius, 0)
         }
