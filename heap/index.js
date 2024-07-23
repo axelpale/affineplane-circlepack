@@ -4,6 +4,7 @@ const Heap = function () {
 
   const heap = []
   const weights = []
+  this.size = 0
 
   this.push = (c, weight) => {
     // Push new element with a weight.
@@ -21,6 +22,7 @@ const Heap = function () {
     let i = heap.length
     heap.push(c)
     weights.push(weight)
+    this.size += 1
 
     // Preserve the heap property: bring smallest at the top.
     // Swap until parent is smaller or root.
@@ -58,6 +60,7 @@ const Heap = function () {
     weights[0] = weights[i]
     heap.pop()
     weights.pop()
+    this.size -= 1
 
     // Preserve the heap property: move the top down until both children are larger.
     const len = heap.length

@@ -9,17 +9,21 @@ test('basic heap', (t) => {
   h.push('no-weight')
   h.push('bad-weight', 'bad')
   t.equal(h.pop(), null, 'should still be empty')
+  t.equal(h.size, 0, 'should still be empty')
 
   h.push('hello', 5)
+  t.equal(h.size, 1, 'should not be empty')
   t.equal(h.pop(), 'hello', 'should have element')
 
   h.push('hola', 4)
   h.push('hello', 5)
   h.push('hi', 2)
+  t.equal(h.size, 3, 'should have elements')
   t.equal(h.pop(), 'hi', 'should have put smallest first')
   t.equal(h.pop(), 'hola', 'should have kept order')
   t.equal(h.pop(), 'hello', 'should have put largest last')
   t.equal(h.pop(), null, 'should clear our')
+  t.equal(h.size, 0, 'should have no elements')
 
   t.end()
 })
