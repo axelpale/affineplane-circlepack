@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimate Upper Bound of Tangent Circle Radius</title>
+    <style>
+      canvas {
+        /* Prevent page scroll while dragging circles. */
+        touch-action: none;
+      }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+    <form>
+      <label for="aradius">Radius of the <span style="color: red;">Red</span> Circle:</label>
+      <input type="number" id="aradius" name="aradius" min="0" max="600" value="60" /><br>
+      <label for="bradius">Radius of the <span style="color: green;">Green</span> Circle:</label>
+      <input type="number" id="bradius" name="bradius" min="0" max="600" value="100" /><br>
+      <label for="cradius">Radius of the <span style="color: blue;">Blue</span> Circle:</label>
+      <input type="number" id="cradius" name="cradius" min="0" max="600" value="200" /><br>
+    </form>
+    <p style="max-width: 500px;">&#9432; This interactive app demonstrates a function
+      that finds a circle that is tangent to, in between of, three other circles.
+      The function will be a part of a circle packing algorithm.
+      The resulting circle packing can then be applied to data visualization.
+      The function finds a position and radius for a circle (<span style="color: gray;">gray</span>),
+      so that it becomes tangent to three known circles
+      (<span style="color: red;">red</span>, <span style="color: green;">green</span>, <span style="color: blue;">blue</span>).
+      The known circles can be dragged around by mouse.
+      Some ChatGPT was used to generate an empty canvas app.
+      <a href="https://www.akselipalen.com">Akseli Palén</a>, 2024.
+    </p>
+    <script>
+        const findTangentRadius = (ca, cb, cc) => {
+          const vab = { x: cb.x - ca.x, y: cb.y - ca.y }
+          const vbc = { x: cc.x - cb.x, y: cc.y - cb.y }
+          const vca = { x: ca.x - cc.x, y: ca.y - cc.y }
+          const dab = Math.sqrt(vab.x * vab.x + vab.y * vab.y)
+          const dbc = Math.sqrt(vbc.x * vbc.x + vbc.y * vbc.y)
+          const dca = Math.sqrt(vca.x * vca.x + vca.y * vca.y)
+          const p = (dab + dbc + dca) / 2
+          const area = Math.sqrt(p * (p - dab) * (p - dbc) * (p - dca))
+          const radius = area / p // (dab * dbc * dca) / (4 * area) // area / p
+          // console.log(dab, dbc, dca, p, area, radius)
+          return Math.max(radius, 0)
+        }
+
+        const findTangentCircle = (ca, cb, rc, lefthand) => {
+          // Find a circle C that is right-hand tangent to the circles A and B.
+          // If the gap between A and B is too large for C to be tangent with both
+          // then the resulting circle is tangent with A and as close to B as possible.
+          //
+          // Parameters:
+          //   ca
+          //     a circle {x,y,r}, the circle A.
+          //   cb
+          //     a circle {x,y,r}, the circle B.
+          //   rc
+          //     a number, the radius of the circle C.
+          //   lefthand
+          //     a boolean, default false. Set true for left-handed tanget circle.
+          //
+          // Returns:
+          //   a circle {x,y,r}
+          //
+
+          // Sort circles largest first, but memorize the original order.
+          // Order circles largest first. This avoids special treatment of cases
+          // where the point H (the point C projected on the AB line) is outside AB.
+          // However, we need to maintain handedness.
+          const c0 = ca
+          const c1 = cb
+          let swapped = false
+          let hand = (lefthand ? -1 : 1)
+          if (ca.r < cb.r) {
+            // Swap
+            const ct = cb
+            cb = ca
+            ca = ct
+            swapped = true
+            hand = -hand
+          }
+
+          // Vector from A to B, of length c.
+          const vab = {
+            x: cb.x - ca.x,
+            y: cb.y - ca.y
+          }
+          // Triangle sides
+          const a = cb.r + rc // length of BC
+          const b = ca.r + rc // length of AC
+          const c = Math.sqrt(vab.x * vab.x + vab.y * vab.y) // ca.r + cb.r for tangent A and B
+          // Check special cases.
+          const epsilon = 1000 * Number.EPSILON
+          if (-epsilon < c && c < epsilon) {
+            // The circles A and B are concentric i.e. the distance between their centers is zero.
+            // The circle C can be tangent to both only if A and B have equal radius.
+            // The best compromise is to let C be tangent to the one with the largest radius (A).
+            // The tangent position for the circle C is found at an arbitrary angle (choose 0 deg).
+            return {
+              x: ca.x + b, // because b = ca.r + rc and ca.r is always >= cb.r.
+              y: ca.y,
+              r: rc
+            }
+          }
+          if (c + cb.r <= ca.r) {
+            // The circle A fully covers the circle B.
+            // In other words, the circle B is completely inside the circle A.
+            // The best compromise is to let the circle C be tangent to the circle A
+            // at a position closest to the circle B.
+            const vac = {
+              x: vab.x * b / c,
+              y: vab.y * b / c
+            }
+            // The center point of the circle C: vc = va + vac
+            return {
+              x: ca.x + vac.x,
+              y: ca.y + vac.y,
+              r: rc
+            }
+          }
+          if (a + b < c) {
+            // The circles A and B are so far away that the circle C cannot connect them.
+            // Find a circle that is tangent with A and has center point along AB.
+            // To maintain the original circle order regardless of their radii,
+            // we treat both orders separately.
+            if (swapped) {
+               // Swapped order. Prefer the circle B.
+              const vbc = {
+                x: -vab.x * a / c,
+                y: -vab.y * a / c
+              }
+              // The center point of the circle C: vc = vb + vbc
+              return {
+                x: cb.x + vbc.x,
+                y: cb.y + vbc.y,
+                r: rc
+              }
+            } else {
+              // Original order. Prefer the circle A.
+              const vac = {
+                x: vab.x * b / c,
+                y: vab.y * b / c
+              }
+              // The center point of the circle C: vc = va + vac
+              return {
+                x: ca.x + vac.x,
+                y: ca.y + vac.y,
+                r: rc
+              }
+            }
+          }
+          // After excluding the special cases above,
+          // it is now possible to find a circle that is
+          // tangent to both circles A and B.
+          const p = (a + b + c) / 2
+          const A = Math.sqrt(p * (p - a) * (p - b) * (p - c))
+          const h = 2 * A / c
+          const w = Math.sqrt(b * b - h * h)
+          // Vector from A to H, of length w.
+          const vw = {
+            x: vab.x * w / c,
+            y: vab.y * w / c
+          }
+          // Vector from H to C, of length h.
+          const vh = {
+            x: hand * -vw.y * h / w,
+            y: hand * vw.x * h / w
+          }
+          // Find the center point of C.
+          // A + vw + vh
+          return {
+            x: ca.x + vw.x + vh.x,
+            y: ca.y + vw.y + vh.y,
+            r: rc
+          }
+        }
+
+        const circles = [
+          {
+            x: 160,
+            y: 280,
+            r: 50,
+            color: 'red'
+          },
+          {
+            x: 330,
+            y: 260,
+            r: 100,
+            color: 'green'
+          },
+          {
+            x: 270,
+            y: 600,
+            r: 200,
+            color: 'blue'
+          }
+        ]
+
+        // Get the canvas element and its context
+        const canvas = document.getElementById('myCanvas')
+        const context = canvas.getContext('2d')
+
+        // Function to draw a circle
+        function drawCircle(circle, color) {
+          const x = circle.x
+          const y = circle.y
+          const radius = circle.r
+          context.beginPath()
+          context.arc(x, y, radius, 0, 2 * Math.PI, false)
+          context.fillStyle = color
+          context.fill()
+          context.stroke()
+        }
+
+        function drawCircles() {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+
+          for (let circle of circles) {
+            drawCircle(circle, circle.color)
+          }
+
+          const radius = findTangentRadius(circles[0], circles[1], circles[2])
+          const tan = findTangentCircle(circles[0], circles[1], radius, false)
+          drawCircle(tan, 'gray')
+        }
+
+        function isPointInCircle(x, y, circle) {
+          const dx = x - circle.x
+          const dy = y - circle.y
+          return dx * dx + dy * dy <= circle.r * circle.r
+        }
+
+        // Dragging interaction
+        let isDragging = false
+        let draggedCircle = null
+        let offsetX, offsetY
+
+        canvas.addEventListener('pointerdown', (e) => {
+          const mouseX = e.offsetX
+          const mouseY = e.offsetY
+          const precedence = circles.slice().reverse() // first drawn gets last input
+          for (let circle of precedence) {
+            if (isPointInCircle(mouseX, mouseY, circle)) {
+              isDragging = true
+              draggedCircle = circle
+              offsetX = mouseX - circle.x
+              offsetY = mouseY - circle.y
+              break
+            }
+          }
+        })
+
+        canvas.addEventListener('pointermove', (e) => {
+          if (isDragging) {
+            const mouseX = e.offsetX
+            const mouseY = e.offsetY
+            draggedCircle.x = mouseX - offsetX
+            draggedCircle.y = mouseY - offsetY
+            drawCircles()
+          }
+        })
+
+        canvas.addEventListener('pointerup', () => {
+          isDragging = false
+          draggedCircle = null
+        })
+
+        // Form interaction
+        const inputARadius = document.getElementById('aradius')
+        const inputBRadius = document.getElementById('bradius')
+        const inputCRadius = document.getElementById('cradius')
+        const readForm = () => {
+          circles[0].r = parseInt(inputARadius.value)
+          circles[1].r = parseInt(inputBRadius.value)
+          circles[2].r = parseInt(inputCRadius.value)
+        }
+        const refresh = () => {
+          readForm()
+          drawCircles()
+        }
+        inputARadius.addEventListener('change', refresh)
+        inputBRadius.addEventListener('change', refresh)
+        inputCRadius.addEventListener('change', refresh)
+
+        // Initial drawing
+        refresh()
+    </script>
+</body>
+</html>

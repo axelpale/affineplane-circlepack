@@ -106,6 +106,7 @@ CircleGraph.prototype.clique = function (cs) {
     console.warn('The clique has too many circles. Ensure decreasing insertion order.')
   }
 
+  // For each pair of circles...
   for (let x = 0; x < n; x += 1) {
     const c0 = cs[x]
     for (let y = x + 1; y < n; y += 1) {
@@ -118,7 +119,7 @@ CircleGraph.prototype.clique = function (cs) {
       } else {
         // Create an edge.
         // Except when the gap between the circles is larger than the diameter of the smallest circle.
-        // TODO OPTIMIZE skip gaps larger than the actual smallest circle diameter.
+        // TODO OPTIMIZE skip gaps larger than the actual smallest circle diameter?
         const dx = c1.x - c0.x
         const dy = c1.y - c0.y
         const gap = dx * dx + dy * dy - (c0.r + c1.r)
