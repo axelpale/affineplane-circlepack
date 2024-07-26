@@ -33,272 +33,55 @@
       <a href="https://www.akselipalen.com">Akseli Palén</a>, 2024.
     </p>
     <script>
-        const diff = (a, b) => {
-          return {
-            x: b.x - a.x,
-            y: b.y - a.y
-          }
-        }
-        const mean = (v, w) => {
-          return {
-            x: (v.x + w.x) / 2,
-            y: (v.y + w.y) / 2
-          }
-        }
-        const wmean = (v, w, p, q) => {
-          return {
-            x: (p * v.x + q * w.x) / (p + q),
-            y: (p * v.y + q * w.y) / (p + q)
-          }
-        }
-        const negate = (v) => {
-          return {
-            x: -v.x,
-            y: -v.y
-          }
-        }
-        const norm = (v) => {
-          return Math.sqrt(v.x * v.x + v.y * v.y)
-        }
-        const scale = (v, m) => {
-          return {
-            x: m * v.x,
-            y: m * v.y
-          }
-        }
-        const add = (p, v) => {
-          return {
-            x: p.x + v.x,
-            y: p.y + v.y
-          }
-        }
-        const nadd = (v0, v1, v2) => {
-          return {
-            x: -v0.x + v1.x + v2.x,
-            y: -v0.y + v1.y + v2.y
-          }
-        }
-        const semiperimeter = (a, b, c) => {
-          return (a + b + c) / 2
-        }
-        const heron = (a, b, c) => {
-          const p = (a + b + c) / 2
-          const area = Math.sqrt(p * (p - a) * (p - b) * (p - c))
-          return area
-        }
-        const exradius = (a, b, c) => {
-          const area = heron(a, b, c)
-          return (a * b * c) / (4 * area)
-        }
-        const dot = (v, w) => {
-          return v.x * w.x + v.y * w.y
-        }
-        const cross = (v, w) => {
-          return v.x * w.y - v.y * w.x
-        }
-        const findTangentRadius = (a, b, c) => {
-          const vab = diff(a, b)
-          const vbc = diff(b, c)
-          const vca = diff(c, a)
-          const vba = negate(vab)
-          const vcb = negate(vbc)
-          const vac = negate(vca)
-          const vma = wmean(vab, vac, c.r, b.r)
-          const vmb = wmean(vbc, vba, a.r, c.r)
-          const vmc = wmean(vca, vcb, b.r, a.r)
-          const dma = norm(vma)
-          const dmb = norm(vmb)
-          const dmc = norm(vmc)
-          const vra = scale(vma, a.r / dma)
-          const vrb = scale(vmb, b.r / dmb)
-          const vrc = scale(vmc, c.r / dmc)
-          // Find circumcenter of this smaller triangle.
-          const at = add(a, vra)
-          const bt = add(b, vrb)
-          const ct = add(c, vrc)
-          const cend = 2 * (at.x * (bt.y - ct.y) + bt.x * (ct.y - at.y) + ct.x * (at.y - bt.y))
-          const at2 = at.x * at.x + at.y * at.y
-          const bt2 = bt.x * bt.x + bt.y * bt.y
-          const ct2 = ct.x * ct.x + ct.y * ct.y
-          const C = {
-            x: (at2 * (bt.y - ct.y) + bt2 * (ct.y - at.y) + ct2 * (at.y - bt.y)) / cend,
-            y: (at2 * (ct.x - bt.x) + bt2 * (at.x - ct.x) + ct2 * (bt.x - at.x)) / cend
-          }
-          // Use this new center to find better control points.
-          const vaC = diff(a, C)
-          const vbC = diff(b, C)
-          const vcC = diff(c, C)
-          const daC = norm(vaC)
-          const dbC = norm(vbC)
-          const dcC = norm(vcC)
-          const vraC = scale(vaC, a.r / daC)
-          const vrbC = scale(vbC, b.r / dbC)
-          const vrcC = scale(vcC, c.r / dcC)
-          const tab = nadd(vraC, vab, vrbC)
-          const tbc = nadd(vrbC, vbc, vrcC)
-          const tca = nadd(vrcC, vca, vraC)
-          const dtab = norm(tab)
-          const dtbc = norm(tbc)
-          const dtca = norm(tca)
-          const radius = exradius(dtab, dtbc, dtca)
-          // //
-          // if (cross(vab, vaC) * cross(vbc, vbC) * cross(vca, vcC) < 0) {
-          //   return -radius
-          // }
+        const epsilon = 0.000000001
+        const findApolloniusTangent = (c1, c2, c3) => {
+          // Find a circle that is externally tangent to the three circles c1,c2,c3.
+          // Returns null if no such circle exists on the real plane.
 
-          // const tab = nadd(vra, vab, vrb)
-          // const tbc = nadd(vrb, vbc, vrc)
-          // const tca = nadd(vrc, vca, vra)
-          // const dta = norm(tbc)
-          // const dtb = norm(tca)
-          // const dtc = norm(tab)
-          // const dota = -dot(tab, tca) // dot(v, -w) = -dot(v, w)
-          // const dotb = -dot(tbc, tab)
-          // const dotc = -dot(tca, tbc)
-          // const cosa = dota / (dtc * dtb)
-          // const cosb = dotb / (dta * dtc)
-          // const cosc = dotc / (dtb * dta)
-          // console.log(cosa, cosb, cosc)
-          // if (cosa < 0) { return dta / 2 }
-          // if (cosb < 0) { return dtb / 2 }
-          // if (cosc < 0) { return dtc / 2 }
-          // if (cosa * cosb * cosc < 0) {
-          //   return semiperimeter(dta, dtb, dtc) / 2
-          // }
-          // const radius = exradius(dta, dtb, dtc)
-          // console.log(dab, dbc, dca, p, area, radius)
-          return radius
-        }
-
-        const findTangentCircle = (ca, cb, rc, lefthand) => {
-          // Find a circle C that is right-hand tangent to the circles A and B.
-          // If the gap between A and B is too large for C to be tangent with both
-          // then the resulting circle is tangent with A and as close to B as possible.
-          //
-          // Parameters:
-          //   ca
-          //     a circle {x,y,r}, the circle A.
-          //   cb
-          //     a circle {x,y,r}, the circle B.
-          //   rc
-          //     a number, the radius of the circle C.
-          //   lefthand
-          //     a boolean, default false. Set true for left-handed tanget circle.
-          //
-          // Returns:
-          //   a circle {x,y,r}
-          //
-
-          // Sort circles largest first, but memorize the original order.
-          // Order circles largest first. This avoids special treatment of cases
-          // where the point H (the point C projected on the AB line) is outside AB.
-          // However, we need to maintain handedness.
-          const c0 = ca
-          const c1 = cb
-          let swapped = false
-          let hand = (lefthand ? -1 : 1)
-          if (ca.r < cb.r) {
-            // Swap
-            const ct = cb
-            cb = ca
-            ca = ct
-            swapped = true
-            hand = -hand
-          }
-
-          // Vector from A to B, of length c.
-          const vab = {
-            x: cb.x - ca.x,
-            y: cb.y - ca.y
-          }
-          // Triangle sides
-          const a = cb.r + rc // length of BC
-          const b = ca.r + rc // length of AC
-          const c = Math.sqrt(vab.x * vab.x + vab.y * vab.y) // ca.r + cb.r for tangent A and B
-          // Check special cases.
-          const epsilon = 1000 * Number.EPSILON
-          if (-epsilon < c && c < epsilon) {
-            // The circles A and B are concentric i.e. the distance between their centers is zero.
-            // The circle C can be tangent to both only if A and B have equal radius.
-            // The best compromise is to let C be tangent to the one with the largest radius (A).
-            // The tangent position for the circle C is found at an arbitrary angle (choose 0 deg).
-            return {
-              x: ca.x + b, // because b = ca.r + rc and ca.r is always >= cb.r.
-              y: ca.y,
-              r: rc
-            }
-          }
-          if (c + cb.r <= ca.r) {
-            // The circle A fully covers the circle B.
-            // In other words, the circle B is completely inside the circle A.
-            // The best compromise is to let the circle C be tangent to the circle A
-            // at a position closest to the circle B.
-            const vac = {
-              x: vab.x * b / c,
-              y: vab.y * b / c
-            }
-            // The center point of the circle C: vc = va + vac
-            return {
-              x: ca.x + vac.x,
-              y: ca.y + vac.y,
-              r: rc
-            }
-          }
-          if (a + b < c) {
-            // The circles A and B are so far away that the circle C cannot connect them.
-            // Find a circle that is tangent with A and has center point along AB.
-            // To maintain the original circle order regardless of their radii,
-            // we treat both orders separately.
-            if (swapped) {
-               // Swapped order. Prefer the circle B.
-              const vbc = {
-                x: -vab.x * a / c,
-                y: -vab.y * a / c
-              }
-              // The center point of the circle C: vc = vb + vbc
-              return {
-                x: cb.x + vbc.x,
-                y: cb.y + vbc.y,
-                r: rc
-              }
-            } else {
-              // Original order. Prefer the circle A.
-              const vac = {
-                x: vab.x * b / c,
-                y: vab.y * b / c
-              }
-              // The center point of the circle C: vc = va + vac
-              return {
-                x: ca.x + vac.x,
-                y: ca.y + vac.y,
-                r: rc
-              }
-            }
-          }
-          // After excluding the special cases above,
-          // it is now possible to find a circle that is
-          // tangent to both circles A and B.
-          const p = (a + b + c) / 2
-          const A = Math.sqrt(p * (p - a) * (p - b) * (p - c))
-          const h = 2 * A / c
-          const w = Math.sqrt(b * b - h * h)
-          // Vector from A to H, of length w.
-          const vw = {
-            x: vab.x * w / c,
-            y: vab.y * w / c
-          }
-          // Vector from H to C, of length h.
-          const vh = {
-            x: hand * -vw.y * h / w,
-            y: hand * vw.x * h / w
-          }
-          // Find the center point of C.
-          // A + vw + vh
-          return {
-            x: ca.x + vw.x + vh.x,
-            y: ca.y + vw.y + vh.y,
-            r: rc
-          }
+          // Circle differences
+          const dx12 = c2.x - c1.x
+          const dx23 = c3.x - c2.x
+          const dx31 = c1.x - c3.x
+          const dy12 = c2.y - c1.y
+          const dy23 = c3.y - c2.y
+          const dy31 = c1.y - c3.y
+          // Circle expressions of form x^2 + y^2 - r^2
+          const g1 = c1.x * c1.x + c1.y * c1.y - c1.r * c1.r
+          const g2 = c2.x * c2.x + c2.y * c2.y - c2.r * c2.r
+          const g3 = c3.x * c3.x + c3.y * c3.y - c3.r * c3.r
+          // Coefficients for the coordinates x=(a+b*r)/D, y=(c+d*r)/D
+          // Determinant (denominator)
+          const D = 2 * (c1.y * dx23 + c2.y * dx31 + c3.y * dx12)
+          // Special case: determinant is zero.
+          if (Math.abs(D) < epsilon) return null
+          const a = -(dy23 * g1 + dy31 * g2 + dy12 * g3)
+          const b = 2 * (c1.r * dy23 + c2.r * dy31 + c3.r * dy12)
+          const c = dx23 * g1 + dx31 * g2 + dx12 * g3
+          const d = -2 * (c1.r * dx23 + c2.r * dx31 + c3.r * dx12)
+          // We solve r via a quadratic formula r=(-Q±sqrt(Q^2-P*R))/P
+          // We use c1 as an anchor.
+          const dx = D * c1.x - a
+          const dy = D * c1.y - c
+          const dr = D * c1.r
+          // Coefficients
+          const P = b * b + d * d - D * D
+          const Q = b * dx + d * dy - D * dr
+          const R = dx * dx + dy * dy - dr * dr
+          // Special case: quadratic formula denominator is zero.
+          if (Math.abs(P) < epsilon) return null
+          // Discriminant
+          let disc = Q * Q - P * R
+          // Special case: discriminant is negative. Deal with floating point issues.
+          if (Math.abs(disc) < epsilon) disc = 0
+          if (disc < 0) return null
+          // Find the target radius
+          const r = (-Q - Math.sqrt(disc)) / P
+          console.log(r)
+          // Find the target circle center
+          const x = (a + b * r) / D
+          const y = (c + d * r) / D
+          // Return the circle
+          return { x, y, r }
         }
 
         const circles = [
@@ -341,14 +124,14 @@
         function drawCircles() {
           context.clearRect(0, 0, canvas.width, canvas.height);
 
+          const tan = findApolloniusTangent(circles[0], circles[1], circles[2])
+          if (tan && tan.r >= 0) {
+            drawCircle(tan, 'gray')
+          }
+
           for (let circle of circles) {
             drawCircle(circle, circle.color)
           }
-
-          const radius = findTangentRadius(circles[0], circles[1], circles[2])
-          const righthand = radius < 0
-          const tan = findTangentCircle(circles[0], circles[1], Math.abs(radius), righthand)
-          drawCircle(tan, 'gray')
         }
 
         function isPointInCircle(x, y, circle) {
