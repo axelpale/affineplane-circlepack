@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estimate Upper Bound of Tangent Circle Radius</title>
+    <title>Tangent Circle of Apollonius</title>
     <style>
       canvas {
         /* Prevent page scroll while dragging circles. */
@@ -22,13 +22,13 @@
       <input type="number" id="cradius" name="cradius" min="0" max="600" value="130" /><br>
     </form>
     <p style="max-width: 500px;">&#9432; This interactive app demonstrates a function
-      that finds a circle that is tangent to, in between of, three other circles.
+      that finds a circle (<span style="color: gray;">gray</span>) that is tangent to, i.e touching, three known circles
+      (<span style="color: red;">red</span>, <span style="color: green;">green</span>, <span style="color: blue;">blue</span>).
+      You can drag the known circles around using the mouse or touch.
+      The result is one of the eight solutions to the <a href="https://en.wikipedia.org/wiki/Problem_of_Apollonius">problem of Apollonius</a>.
       The function will be a part of a circle packing algorithm.
       The resulting circle packing can then be applied to data visualization.
-      The function finds a position and radius for a circle (<span style="color: gray;">gray</span>),
-      so that it becomes tangent to three known circles
-      (<span style="color: red;">red</span>, <span style="color: green;">green</span>, <span style="color: blue;">blue</span>).
-      The known circles can be dragged around by mouse.
+      <a href="https://maxima.sourceforge.io/">Maxima</a> was used during formulation.
       Some ChatGPT was used to generate an empty canvas app.
       <a href="https://www.akselipalen.com">Akseli Palén</a>, 2024.
     </p>
@@ -65,7 +65,7 @@
           const dr = D * c1.r
           // Coefficients
           const P = b * b + d * d - D * D
-          const Q = b * dx + d * dy - D * dr
+          const Q = b * dx + d * dy + D * dr
           const R = dx * dx + dy * dy - dr * dr
           // Special case: quadratic formula denominator is zero.
           if (Math.abs(P) < epsilon) return null
@@ -75,8 +75,7 @@
           if (Math.abs(disc) < epsilon) disc = 0
           if (disc < 0) return null
           // Find the target radius
-          const r = (-Q - Math.sqrt(disc)) / P
-          console.log(r)
+          const r = (Q - Math.sqrt(disc)) / P
           // Find the target circle center
           const x = (a + b * r) / D
           const y = (c + d * r) / D
