@@ -1,21 +1,59 @@
 const affineplane = require('affineplane')
 const CircleGrid = require('./grid')
+const CircleGraph = require('./graph')
+const BinaryHeap = require('./heap')
+const nearestTangent = require('./circle')
 
-const insert = (field, grid, c0) => {
-  // Place a circle at a free position on the field.
-  //
+const findFreePosition = (grid, graph, c0) => {
+  // Find a good tight position for the circle c0
+  // as close to the original location as possible.
 
-  // Find a nearby free tangent circle position.
-  const c = c0
+  // Rank tangent circle candidates by distance.
+  const candidateHeap = new BinaryHeap()
+  candidateHeap.push(c0, 0)
 
-  // Find colliding circles.
+  while (candidateHeap.size > 0) {
+    // Draw next candidate
+    const candidate = candidateHeap.pop()
+    // Find colliding circles.
+    const overlap = grid.overlap(candidate)
+    // No obstacles.
+    if (overlap.length === 0) {
+      return candidate
+    }
+    // Just one obstacle. Cannot yet create edge.
+    if (overlap.length === 1) {
+      const near = nearestTangent(c0, overlap[0])
+      // Candidate must be a bit larger to ensure hit to overlap.
+      near.r *= 1.0001
+      // Distance of zero for immediate pop.
+      candidateHeap.push(near, 0)
+      continue
+    }
+    // Else the candidate overlaps two or more circles.
+    // Ensure these are connected.
+    const edges = graph.clique(overlap)
+    for (let i = 0; i < edges.length; i += 1) {
+      const edge = edges[i]
+      const tangents = edge.getTangentCircles()
+      for (let t = 0; t < tangents.length; t += 1) {
+        const tangent = tangents[t]
+        const dx = tangent.x - c0.x
+        const dy = tangent.y - c0.y
+        const d2 = dx * dx + dy * dy
+        candidateHeap.push(candidate, d2)
+      }
+    }
+  }
 
-  // Get all edges between the colliders.
-  // This is the edge frontier.
+  // No candidates left
+  return null
 
   // Find edges with possible free tangent positions -> looseEdges
   // Do this step without collision detection.
+  // const looseEdges = edges.filter(edge.hasRoomFor(c))
   // Collect occupied edges -> hardEdges
+  // const hardEdges = edges.filter(!edge.hasRoomFor(c))
 
   // For each loose edge, generate remaining tangent circle candidates.
   // For each candidate, do a field collision check.
@@ -33,7 +71,14 @@ const insert = (field, grid, c0) => {
   // - mark all edges and nodes unvisited for the next search.
   // - create edges between the new candidate and its tangent parents.
   // - update limits of the edge between parents.
+}
 
+const insert = (field, grid, graph, c0) => {
+  // Place a circle at a free position on the field.
+  //
+
+  // Find a nearby free tangent circle position.
+  const c = findFreePosition(grid, graph, c0)
   // Preserve meta properties.
   const cfix = Object.assign({}, c0, c)
   // Track insertion order. This also gives each fixed circle an identifier.
@@ -61,12 +106,15 @@ const pack = (circles) => {
   })
 
   // Create a grid for the circles.
-  // The grid enables fact collision check once the grid size is
+  // The grid enables fast collision check once the grid size is
   // in accordance with the circle size.
   const maxRadius = sorted[0] ? sorted[0].r : 100
   const grid = new CircleGrid(maxRadius)
+  // Create a graph for the circles.
+  // The graph enables fast travel along adjacent circles.
+  const graph = new CircleGraph()
 
-  return sorted.map(c => insert(field, grid, c))
+  return sorted.map(c => insert(field, grid, graph, c))
 }
 
 // Extend if globally available.
