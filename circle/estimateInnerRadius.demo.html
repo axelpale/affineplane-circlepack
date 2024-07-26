@@ -33,10 +33,22 @@
       <a href="https://www.akselipalen.com">Akseli Palén</a>, 2024.
     </p>
     <script>
+        const diff = (a, b) => {
+          return {
+            x: b.x - a.x,
+            y: b.y - a.y
+          }
+        }
         const mean = (v, w) => {
           return {
             x: (v.x + w.x) / 2,
             y: (v.y + w.y) / 2
+          }
+        }
+        const wmean = (v, w, p, q) => {
+          return {
+            x: (p * v.x + q * w.x) / (p + q),
+            y: (p * v.y + q * w.y) / (p + q)
           }
         }
         const negate = (v) => {
@@ -54,11 +66,20 @@
             y: m * v.y
           }
         }
+        const add = (p, v) => {
+          return {
+            x: p.x + v.x,
+            y: p.y + v.y
+          }
+        }
         const nadd = (v0, v1, v2) => {
           return {
             x: -v0.x + v1.x + v2.x,
             y: -v0.y + v1.y + v2.y
           }
+        }
+        const semiperimeter = (a, b, c) => {
+          return (a + b + c) / 2
         }
         const heron = (a, b, c) => {
           const p = (a + b + c) / 2
@@ -69,31 +90,84 @@
           const area = heron(a, b, c)
           return (a * b * c) / (4 * area)
         }
+        const dot = (v, w) => {
+          return v.x * w.x + v.y * w.y
+        }
+        const cross = (v, w) => {
+          return v.x * w.y - v.y * w.x
+        }
         const findTangentRadius = (a, b, c) => {
-          const vab = { x: b.x - a.x, y: b.y - a.y }
-          const vbc = { x: c.x - b.x, y: c.y - b.y }
-          const vca = { x: a.x - c.x, y: a.y - c.y }
+          const vab = diff(a, b)
+          const vbc = diff(b, c)
+          const vca = diff(c, a)
           const vba = negate(vab)
           const vcb = negate(vbc)
           const vac = negate(vca)
-          const vmab = mean(vca, vcb)
-          const vmbc = mean(vab, vac)
-          const vmca = mean(vbc, vba)
-          const dmab = norm(vmab)
-          const dmbc = norm(vmbc)
-          const dmca = norm(vmca)
-          const vra = scale(vmbc, a.r / dmbc)
-          const vrb = scale(vmca, b.r / dmca)
-          const vrc = scale(vmab, c.r / dmab)
-          const tab = nadd(vra, vab, vrb)
-          const tbc = nadd(vrb, vbc, vrc)
-          const tca = nadd(vrc, vca, vra)
-          const dta = norm(tbc)
-          const dtb = norm(tca)
-          const dtc = norm(tab)
-          const radius = exradius(dta, dtb, dtc)
+          const vma = wmean(vab, vac, c.r, b.r)
+          const vmb = wmean(vbc, vba, a.r, c.r)
+          const vmc = wmean(vca, vcb, b.r, a.r)
+          const dma = norm(vma)
+          const dmb = norm(vmb)
+          const dmc = norm(vmc)
+          const vra = scale(vma, a.r / dma)
+          const vrb = scale(vmb, b.r / dmb)
+          const vrc = scale(vmc, c.r / dmc)
+          // Find circumcenter of this smaller triangle.
+          const at = add(a, vra)
+          const bt = add(b, vrb)
+          const ct = add(c, vrc)
+          const cend = 2 * (at.x * (bt.y - ct.y) + bt.x * (ct.y - at.y) + ct.x * (at.y - bt.y))
+          const at2 = at.x * at.x + at.y * at.y
+          const bt2 = bt.x * bt.x + bt.y * bt.y
+          const ct2 = ct.x * ct.x + ct.y * ct.y
+          const C = {
+            x: (at2 * (bt.y - ct.y) + bt2 * (ct.y - at.y) + ct2 * (at.y - bt.y)) / cend,
+            y: (at2 * (ct.x - bt.x) + bt2 * (at.x - ct.x) + ct2 * (bt.x - at.x)) / cend
+          }
+          // Use this new center to find better control points.
+          const vaC = diff(a, C)
+          const vbC = diff(b, C)
+          const vcC = diff(c, C)
+          const daC = norm(vaC)
+          const dbC = norm(vbC)
+          const dcC = norm(vcC)
+          const vraC = scale(vaC, a.r / daC)
+          const vrbC = scale(vbC, b.r / dbC)
+          const vrcC = scale(vcC, c.r / dcC)
+          const tab = nadd(vraC, vab, vrbC)
+          const tbc = nadd(vrbC, vbc, vrcC)
+          const tca = nadd(vrcC, vca, vraC)
+          const dtab = norm(tab)
+          const dtbc = norm(tbc)
+          const dtca = norm(tca)
+          const radius = exradius(dtab, dtbc, dtca)
+          // //
+          // if (cross(vab, vaC) * cross(vbc, vbC) * cross(vca, vcC) < 0) {
+          //   return -radius
+          // }
+
+          // const tab = nadd(vra, vab, vrb)
+          // const tbc = nadd(vrb, vbc, vrc)
+          // const tca = nadd(vrc, vca, vra)
+          // const dta = norm(tbc)
+          // const dtb = norm(tca)
+          // const dtc = norm(tab)
+          // const dota = -dot(tab, tca) // dot(v, -w) = -dot(v, w)
+          // const dotb = -dot(tbc, tab)
+          // const dotc = -dot(tca, tbc)
+          // const cosa = dota / (dtc * dtb)
+          // const cosb = dotb / (dta * dtc)
+          // const cosc = dotc / (dtb * dta)
+          // console.log(cosa, cosb, cosc)
+          // if (cosa < 0) { return dta / 2 }
+          // if (cosb < 0) { return dtb / 2 }
+          // if (cosc < 0) { return dtc / 2 }
+          // if (cosa * cosb * cosc < 0) {
+          //   return semiperimeter(dta, dtb, dtc) / 2
+          // }
+          // const radius = exradius(dta, dtb, dtc)
           // console.log(dab, dbc, dca, p, area, radius)
-          return Math.max(radius, 0)
+          return radius
         }
 
         const findTangentCircle = (ca, cb, rc, lefthand) => {
@@ -272,7 +346,8 @@
           }
 
           const radius = findTangentRadius(circles[0], circles[1], circles[2])
-          const tan = findTangentCircle(circles[0], circles[1], radius, false)
+          const righthand = radius < 0
+          const tan = findTangentCircle(circles[0], circles[1], Math.abs(radius), righthand)
           drawCircle(tan, 'gray')
         }
 
