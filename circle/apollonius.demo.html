@@ -20,6 +20,24 @@
       <input type="number" id="bradius" name="bradius" min="0" max="600" value="80" /><br>
       <label for="cradius">Radius of the <span style="color: blue;">Blue</span> Circle:</label>
       <input type="number" id="cradius" name="cradius" min="0" max="600" value="130" /><br>
+
+      <span>Tangency of the <span style="color: red;">Red</span> Circle:</span>
+      <input type="radio" id="aexternal" name="atangency" value="external" checked />
+      <label for="aexternal">external</label>
+      <input type="radio" id="ainternal" name="atangency" value="internal" />
+      <label for="ainternal">internal</label><br>
+      
+      <span>Tangency of the <span style="color: green;">Green</span> Circle:</span>
+      <input type="radio" id="bexternal" name="btangency" value="external" checked />
+      <label for="bexternal">external</label>
+      <input type="radio" id="binternal" name="btangency" value="internal" />
+      <label for="binternal">internal</label><br>
+      
+      <span>Tangency of the <span style="color: blue;">Blue</span> Circle:</span>
+      <input type="radio" id="cexternal" name="ctangency" value="external" checked />
+      <label for="cexternal">external</label>
+      <input type="radio" id="cinternal" name="ctangency" value="internal" />
+      <label for="cinternal">internal</label>
     </form>
     <p style="max-width: 500px;">&#9432; This interactive app demonstrates a function
       that finds a circle (<span style="color: gray;">gray</span>) that is tangent to, i.e touching, three known circles
@@ -123,7 +141,13 @@
         function drawCircles() {
           context.clearRect(0, 0, canvas.width, canvas.height);
 
-          const tan = findApolloniusTangent(circles[0], circles[1], circles[2])
+          const c0 = circles[0]
+          const c1 = circles[1]
+          const c2 = circles[2]
+          const c0hat = { x: c0.x, y: c0.y, r: c0.tangency * c0.r }
+          const c1hat = { x: c1.x, y: c1.y, r: c1.tangency * c1.r }
+          const c2hat = { x: c2.x, y: c2.y, r: c2.tangency * c2.r }
+          const tan = findApolloniusTangent(c0hat, c1hat, c2hat)
           if (tan && tan.r >= 0) {
             drawCircle(tan, 'gray')
           }
@@ -178,10 +202,19 @@
         const inputARadius = document.getElementById('aradius')
         const inputBRadius = document.getElementById('bradius')
         const inputCRadius = document.getElementById('cradius')
+        const inputAExternal = document.getElementById('aexternal')
+        const inputAInternal = document.getElementById('ainternal')
+        const inputBExternal = document.getElementById('bexternal')
+        const inputBInternal = document.getElementById('binternal')
+        const inputCExternal = document.getElementById('cexternal')
+        const inputCInternal = document.getElementById('cinternal')
         const readForm = () => {
           circles[0].r = parseInt(inputARadius.value)
           circles[1].r = parseInt(inputBRadius.value)
           circles[2].r = parseInt(inputCRadius.value)
+          circles[0].tangency = (inputAExternal.checked ? 1 : -1)
+          circles[1].tangency = (inputBExternal.checked ? 1 : -1)
+          circles[2].tangency = (inputCExternal.checked ? 1 : -1)
         }
         const refresh = () => {
           readForm()
@@ -190,6 +223,12 @@
         inputARadius.addEventListener('change', refresh)
         inputBRadius.addEventListener('change', refresh)
         inputCRadius.addEventListener('change', refresh)
+        inputAExternal.addEventListener('change', refresh)
+        inputAInternal.addEventListener('change', refresh)
+        inputBExternal.addEventListener('change', refresh)
+        inputBInternal.addEventListener('change', refresh)
+        inputCExternal.addEventListener('change', refresh)
+        inputCInternal.addEventListener('change', refresh)
 
         // Initial drawing
         refresh()
