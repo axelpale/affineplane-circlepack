@@ -9,11 +9,21 @@
         /* Prevent page scroll while dragging circles. */
         touch-action: none;
       }
+      form {
+        max-width: 500px;
+      }
+      .info {
+        margin-top: 0;
+        float: right;
+        font-style: italic;
+        color: #999;
+      }
     </style>
 </head>
 <body>
-    <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+    <canvas id="canvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
     <form>
+      <p id="info" class="info"></p>
       <label for="aradius">Radius of the <span style="color: red;">Red</span> Circle:</label>
       <input type="number" id="aradius" name="aradius" min="0" max="600" value="50" /><br>
       <label for="bradius">Radius of the <span style="color: green;">Green</span> Circle:</label>
@@ -123,8 +133,9 @@
         ]
 
         // Get the canvas element and its context
-        const canvas = document.getElementById('myCanvas')
+        const canvas = document.getElementById('canvas')
         const context = canvas.getContext('2d')
+        const info = document.getElementById('info')
 
         // Function to draw a circle
         function drawCircle(circle, color) {
@@ -150,6 +161,9 @@
           const tan = findApolloniusTangent(c0hat, c1hat, c2hat)
           if (tan && tan.r >= 0) {
             drawCircle(tan, 'gray')
+            info.innerHTML = 'Radius: ' + tan.r.toFixed(0)
+          } else {
+            info.innerHTML = 'Radius: N/A'
           }
 
           for (let circle of circles) {
