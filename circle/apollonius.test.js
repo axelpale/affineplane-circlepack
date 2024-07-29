@@ -27,3 +27,26 @@ test('basic apollonius', (t) => {
 
   t.end()
 })
+
+test('linearly dependent apollonius', (t) => {
+  // Circle centers on the same horizontal line.
+  const ch = apollonius({ x: 0, y: 0, r: 5 }, { x: 10, y: 0, r: 3 }, { x: 20, y: 0, r: 5 })
+  // Read rough limits from a drawing.
+  t.equal(ch.x, 10, 'should be horizontally centered')
+  t.ok(ch.r > 20, 'should be larger than 20')
+  t.ok(ch.r < 25, 'should be smaller than 25')
+
+  // Circle centers on the same vertical line.
+  const cv = apollonius({ x: 2, y: -10, r: 5 }, { x: 2, y: 0, r: 3 }, { x: 2, y: 10, r: 5 })
+  // Read rough limits from a drawing.
+  t.equal(cv.y, 0, 'should be vertically centered')
+  t.ok(cv.r > 20, 'should be larger than 20')
+  t.ok(cv.r < 25, 'should be smaller than 25')
+
+  // Mixed order, horizontal line
+  const cm = apollonius({ x: 20, y: 0, r: 5 }, { x: 0, y: 0, r: 5 }, { x: 10, y: 0, r: 3 })
+  // Read rough limits from a drawing.
+  t.deepEqual(cm, ch, 'should be equivalent to the first')
+
+  t.end()
+})
