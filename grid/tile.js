@@ -148,7 +148,7 @@ Tile.prototype.collide = function (c) {
     dx = c.x - b.x
     dy = c.y - b.y
     rr = c.r + b.r
-    if (abs(dx) + abs(dy) < rr && dx * dx + dy * dy < rr * rr) {
+    if (abs(dx) + abs(dy) < rr + rr && dx * dx + dy * dy < rr * rr) {
       return true
     }
   }
@@ -276,7 +276,7 @@ Tile.prototype.overlap = function (c, unique) {
     dx = c.x - b.x
     dy = c.y - b.y
     rr = c.r + b.r
-    if (abs(dx) + abs(dy) < rr && dx * dx + dy * dy < rr * rr) {
+    if (abs(dx) + abs(dy) < rr + rr && dx * dx + dy * dy < rr * rr) {
       colliders.push(b)
     }
   }
