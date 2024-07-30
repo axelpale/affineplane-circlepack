@@ -13,7 +13,7 @@ const findFreePosition = (grid, graph, c0) => {
   candidateHeap.push(c0, 0)
 
   while (candidateHeap.size > 0) {
-    // Draw next candidate
+    // Draw next candidate.
     const candidate = candidateHeap.pop()
     // Find colliding circles.
     const overlap = grid.overlap(candidate)
@@ -73,8 +73,8 @@ const findFreePosition = (grid, graph, c0) => {
   // - update limits of the edge between parents.
 }
 
-const insert = (field, grid, graph, c0) => {
-  // Place a circle at a free position on the field.
+const insert = (grid, graph, c0) => {
+  // Place the circle at a free position.
   //
 
   // Find a nearby free tangent circle position.
@@ -82,18 +82,20 @@ const insert = (field, grid, graph, c0) => {
   // Preserve meta properties.
   const cfix = Object.assign({}, c0, c)
   // Track insertion order. This also gives each fixed circle an identifier.
-  cfix.i = field.length
-  // Fix in place.
-  field.push(cfix)
-  // Add to grid for fast collision check
+  cfix.i = grid.size
+  // Fix in place: add to grid for fast collision check.
   grid.add(cfix)
   // Finished.
   return cfix
 }
 
 const pack = (circles) => {
-  // The circles that are already inserted.
-  const field = []
+  // Arrange the circles so that they do not overlap.
+  //
+  // Return:
+  //   an array of circle2
+  //
+
   // Special case
   if (circles.length < 2) {
     return circles
@@ -114,7 +116,7 @@ const pack = (circles) => {
   // The graph enables fast travel along adjacent circles.
   const graph = new CircleGraph()
 
-  return sorted.map(c => insert(field, grid, graph, c))
+  return sorted.map(c => insert(grid, graph, c))
 }
 
 // Extend if globally available.
