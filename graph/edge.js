@@ -3,6 +3,8 @@ const innerRadius = require('../circle/innerRadius')
 const apollonius = require('../circle/apollonius')
 const tangentCircle = affineplane.circle2.tangentCircle
 const tangentCircles = affineplane.circle2.tangentCircles
+const pointDistance = affineplane.point2.distance
+const epsilon = affineplane.epsilon
 
 const Edge = function (c0, c1) {
   // DEBUG
@@ -32,8 +34,10 @@ const Edge = function (c0, c1) {
 
   // Tangent properties
   this.touching = (Math.abs(this.gap) < affineplane.epsilon)
-  this.maxLeftRadius = Infinity
-  this.maxRightRadius = Infinity
+  // Given that circles are inserted largest first,
+  // we cannot find larger than the smallest of the two circles.
+  this.maxLeftRadius = Math.min(c0.r, c1.r)
+  this.maxRightRadius = Math.min(c0.r, c1.r)
 
   // Track which edges are visited by the algorithm.
   // This will be reset after each successful circle insertion.
@@ -84,6 +88,28 @@ Edge.prototype.harden = function (c2) {
   const dy = c2.y - this.c0.y
   const prod = this.dx * dy - this.dy * dx
 
+  if (Math.abs(prod) < epsilon) {
+    // The cross product is zero, the circles are linearly dependent.
+    // If c2 is in the gap, we cannot place anything between.
+    // Edges between c0 and c2, or c1 and c2, are better suited for
+    // tangent discovery.
+    const d02 = pointDistance(this.c0, c2)
+    const d12 = pointDistance(this.c1, c2)
+    // The c2 is in the gap if the sum of its distances to the two circles
+    // is equal than the distance between the two circles, but
+    // larger than their radii.
+    if (d02 + d12 <= this.d + epsilon) {
+      // The c2 is between c0 and c1.
+      if (d02 >= this.c0.r + c2.r && d12 >= this.c1.r + c2.r) {
+        // The c2 is in the gap.
+        this.maxLeftRadius = 0
+        this.maxRightRadius = 0
+      }
+    }
+    // Else the circle is not valid to be hardened against.
+    return
+  }
+
   const maxTangent = apollonius(this.c0, this.c1, c2)
   if (!maxTangent) {
     console.log('Cannot find apollonius circle')
@@ -100,9 +126,6 @@ Edge.prototype.harden = function (c2) {
   } else if (prod < 0) {
     // Right-hand side
     this.maxRightRadius = Math.min(this.maxRightRadius, maxRadius)
-  } else {
-    // The cross product is zero. At the line. Weird.
-    console.warn('Weird tangent position.')
   }
 }
 
