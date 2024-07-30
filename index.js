@@ -111,8 +111,14 @@ const insert = (grid, graph, c0) => {
   return cfix
 }
 
-const pack = (circles) => {
+const pack = (circles, update) => {
   // Arrange the circles so that they do not overlap.
+  //
+  // Parameters:
+  //   circles
+  //     an array of circle2
+  //   update
+  //     optional function to be called every 10 insertions.
   //
   // Return:
   //   an array of circle2
@@ -138,7 +144,23 @@ const pack = (circles) => {
   // The graph enables fast travel along adjacent circles.
   const graph = new CircleGraph()
 
-  return sorted.map(c => insert(grid, graph, c))
+  if (!update) {
+    return sorted.map(c => insert(grid, graph, c))
+  }
+
+  let batch = 0
+  const speed = 10 // circles per second
+  const delay = 1000 / speed
+  const tick = () => {
+    if (batch < sorted.length) {
+      const c = sorted[batch]
+      const free = insert(grid, graph, c)
+      update(free)
+      batch += 1
+      setTimeout(tick, delay)
+    }
+  }
+  tick()
 }
 
 // Extend if globally available.

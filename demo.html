@@ -100,16 +100,19 @@
             const startTime = window.performance.now()
             // Clear run time display.
             runtimeDisplay.innerHTML = ''
-            // Iterator
-            let circleCounter = 0
-            const packed = pack(circles)
-
-            // Update
-            while (circleCounter < packed.length) {
-              const c = packed[circleCounter]
+            // Perform circle packing
+            const packed = pack(circles, (c) => {
               drawCircle(c, labToCss(c.color))
-              circleCounter += 1
-            }
+            })
+
+            // Sync update
+            // const packed = pack(circles)
+            // let circleCounter = 0
+            // while (circleCounter < packed.length) {
+            //   const c = packed[circleCounter]
+            //   drawCircle(c, labToCss(c.color))
+            //   circleCounter += 1
+            // }
 
             // Finally
             const endTime = window.performance.now()
