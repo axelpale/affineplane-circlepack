@@ -16,17 +16,20 @@ const Edge = function (c0, c1) {
   this.gap = this.d - c1.r + c0.r
   // TODO OPTIMIZE if c0 and c1 are tangent, use sum of radii
 
+  // Middle point
+  this.middle = {
+    x: (c0.x + c1.x) / 2,
+    y: (c0.y + c1.y) / 2
+  }
+
   // Tangent properties
   this.touching = (Math.abs(this.gap) < affineplane.epsilon)
-  this.maxLeftRadius = null // unknown
-  this.maxRightRadius = null // unknown
-}
+  this.maxLeftRadius = Infinity
+  this.maxRightRadius = Infinity
 
-Edge.prototype.center = () => {
-  // Get edge center point.
-  const x = (this.c0.x + this.c1.x) / 2
-  const y = (this.c0.y + this.c1.y) / 2
-  return { x, y }
+  // Track which edges are visited by the algorithm.
+  // This will be reset after each successful circle insertion.
+  this.visited = false
 }
 
 Edge.prototype.getTangentCircles = (r) => {
