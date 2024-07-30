@@ -25,66 +25,95 @@ const findFreePosition = (grid, graph, c0) => {
     // No obstacles.
     if (overlap.length === 0) {
       winner = candidate // WINNER!
+      // Create edges to parents if any.
+      if (winner.parent) {
+        graph.addEdge(winner.parent, winner)
+      }
+      if (winner.parentEdge) {
+        const parentEdge = winner.parentEdge
+        graph.addEdge(parentEdge.c0, winner)
+        graph.addEdge(parentEdge.c1, winner)
+      }
       break
     }
     // Just one obstacle. Cannot yet create edge.
     if (overlap.length === 1) {
-      const near = nearestTangent(candidate, overlap[0])
-      // Candidate must be a bit larger to ensure it will hit to overlap.
-      near.r *= 1.0001
-      // OPTIMIZATION? Use d*d? Distance of zero for immediate pop?
-      const d = pointDistance(c0, candidate)
-      candidateHeap.push(near, d)
-      continue
-    }
-    // Else the candidate overlaps two or more circles.
-    // Ensure these are connected.
-    const edges = graph.clique(overlap)
-    // Add non-visited edges to further processing.
-    edges.forEach(edge => {
-      if (!edge.visited) {
-        // Harden each edge with respect to the clique.
-        for (let i = 0; i < overlap.length; i += 1) {
-          edge.harden(overlap[i]) // too much repetition?
-        }
-        // Send to tangent circle generation.
-        const d = pointDistance(c0, edge.middle)
-        edgeHeap.push(edge, d)
+      const c = overlap[0]
+      const edges = graph.getEdges(c)
+      if (edges.length > 0) {
+        // Edges available for tangent generation and traversal.
+        edges.forEach(edge => {
+          if (!edge.visited) {
+            const d = pointDistance(c0, edge.middle)
+            edgeHeap.push(edge, d)
+          }
+        })
+      } else {
+        // No edges available. Try the default position.
+        const nextCandidate = nearestTangent(candidate, overlap[0])
+        // Store the candidate parent so that we can connect it directly
+        // in case it becomes selected.
+        nextCandidate.parent = overlap[0]
+        // Candidate must be a bit smaller to ensure it will not overlap its parent.
+        nextCandidate.r *= 0.9999
+        // OPTIMIZATION? Use d*d? Distance of zero for immediate pop?
+        const d = pointDistance(c0, nextCandidate)
+        candidateHeap.push(nextCandidate, d)
       }
-    })
+    } else {
+      // The candidate overlaps two or more circles.
+      // Ensure these circles are connected.
 
-    overlap.forEach(hit => {
+      const clique = overlap.slice()
+      // If candidate has known parents, they do not overlap with the candidate.
+      // Therefore they are not included in the overlap array.
+      // In order to ensure that edges exist between the parents and
+      // the overlapping nodes, add them to the clique for which to create edges.
       if (candidate.parentEdge) {
         const edge = candidate.parentEdge
-        edge.limit(hit)
-        const leftEdge = graph.addEdge(edge.c0, hit)
-        const rightEdge = graph.addEdge(edge.c1, hit)
-        // Optimization: limit immediately to avoid unnecessary grid queries.
-        leftEdge.limit(edge.c1)
-        rightEdge.limit(edge.c0)
+        clique.push(edge.c0)
+        clique.push(edge.c1)
       }
+      graph.addEdges(clique)
 
-      graph.getEdges(hit)
-        .filter(edge => !edge.visited)
-        .forEach(edge => edgeHeap.push(edge))
-    })
+      // Get all edges incident on these circles i.e. internal + outbound
+      const edges = graph.edgeNeighborhood(clique)
 
-    const frontierEdges = []
+      // Add non-visited edges to further processing.
+      edges.forEach(edge => {
+        if (!edge.visited) {
+          // Harden each edge with respect to the clique.
+          // Some circle subsets in the clique might be linearly dependent.
+          for (let i = 0; i < clique.length; i += 1) {
+            edge.harden(clique[i]) // too much repetition?
+          }
+          // Send the edge to tangent circle generation.
+          const d = pointDistance(c0, edge.middle)
+          edgeHeap.push(edge, d)
+        }
+      })
+    }
+
+    // const frontierEdges = []
     while (edgeHeap.size > 0) {
       const edge = edgeHeap.pop()
       const cs = edge.getTangentCircles(c0.r)
       for (let i = 0; i < cs.length; i += 1) {
-        candidateHeap.push(cs[i], pointDistance(c0, cs[i]))
+        const tangent = cs[i]
+        tangent.parentEdge = edge
+        candidateHeap.push(tangent, pointDistance(c0, tangent))
       }
+      // Visit each edge only once for c0.
       edge.visited = true
+      // Track edges for clean-up
       visitedEdges.push(edge)
-      frontierEdges.push(edge)
+      // frontierEdges.push(edge)
     }
 
-    frontierEdges.forEach(edge => {
-      const adjacent = graph.adjacentEdges(edge).filter(ed => !ed.visited)
-      adjacent.forEach(adj => edgeHeap.push(adj))
-    })
+    // frontierEdges.forEach(edge => {
+    //   const adjacent = graph.adjacentEdges(edge).filter(ed => !ed.visited)
+    //   adjacent.forEach(adj => edgeHeap.push(adj))
+    // })
   }
 
   // Clean up for the next race before annoucing winner.
