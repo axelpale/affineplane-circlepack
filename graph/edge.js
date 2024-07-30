@@ -5,6 +5,14 @@ const tangentCircle = affineplane.circle2.tangentCircle
 const tangentCircles = affineplane.circle2.tangentCircles
 
 const Edge = function (c0, c1) {
+  // DEBUG
+  if (!c0) {
+    throw new Error('Invalid circle c0: ' + c0)
+  }
+  if (!c1) {
+    throw new Error('Invalid circle c1: ' + c1)
+  }
+
   // Direction is arbitrary. Gotta name them somehow.
   this.c0 = c0
   this.c1 = c1
@@ -32,7 +40,7 @@ const Edge = function (c0, c1) {
   this.visited = false
 }
 
-Edge.prototype.getTangentCircles = (r) => {
+Edge.prototype.getTangentCircles = function (r) {
   // Get available tangent circles of radius r if any.
   //
   // Return:
@@ -59,28 +67,36 @@ Edge.prototype.getTangentCircles = (r) => {
   return tangentCircles(this.c0, this.c1, r)
 }
 
-Edge.prototype.hardenGap = (c2) => {
-  // Harden the limits of available tangent circles
+Edge.prototype.harden = function (c2) {
+  // Harden the limits on possible tangent circle radii
   // by discovery of c2 nearby c0 and c1.
-  // The stricter limits are computed by fast approximation.
-  // The approximation may overestimate but not underestimate
-  // the largest available radii.
   // Requirement: circles are discovered largest first.
   //
 
+  if (this.c0 === c2 || this.c1 === c2) {
+    // Nothing to harden
+    return
+  }
+
   // Find if c2 is at the left-hand or right-hand side.
-  // Use cross product.
+  // Use cross product to decide.
   const dx = c2.x - this.c0.x
   const dy = c2.y - this.c0.y
   const prod = this.dx * dy - this.dy * dx
 
+  const maxTangent = apollonius(this.c0, this.c1, c2)
+  if (!maxTangent) {
+    console.log('Cannot find apollonius circle')
+    console.log(this.c0, this.c1, c2)
+    // We thus cannot adjust the radii.
+    return
+  }
+
   if (prod > 0) {
-    // Left-hand side
-    const maxRadius = apollonius(this.c0, this.c1, c2).r
+    // Left-hand side.
     this.maxLeftRadius = Math.min(this.maxLeftRadius, maxRadius)
   } else if (prod < 0) {
     // Right-hand side
-    const maxRadius = apollonius(this.c0, this.c1, c2).r
     this.maxRightRadius = Math.min(this.maxRightRadius, maxRadius)
   } else {
     // The cross product is zero. At the line. Weird.
@@ -88,7 +104,7 @@ Edge.prototype.hardenGap = (c2) => {
   }
 }
 
-Edge.prototype.hardenTangent = (c2) => {
+Edge.prototype.hardenTangent = function (c2) {
   // Harden the limits of available tangent circles
   // by discovery of c2 that is assumed to be
   // tangent to c0 and c1.

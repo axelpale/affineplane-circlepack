@@ -2,7 +2,8 @@ const affineplane = require('affineplane')
 const CircleGrid = require('./grid')
 const CircleGraph = require('./graph')
 const BinaryHeap = require('./heap')
-const nearestTangent = require('./circle')
+const nearestTangent = require('./circle/nearestTangent')
+const pointDistance = affineplane.point2.distance
 
 const findFreePosition = (grid, graph, c0) => {
   // Find a good tight position for the circle c0
@@ -10,8 +11,12 @@ const findFreePosition = (grid, graph, c0) => {
 
   // Rank tangent circle candidates by distance.
   const candidateHeap = new BinaryHeap()
-  candidateHeap.push(c0, 0)
+  const edgeHeap = new BinaryHeap()
+  const visitedEdges = []
 
+  let winner = null
+
+  candidateHeap.push(c0, 0)
   while (candidateHeap.size > 0) {
     // Draw next candidate.
     const candidate = candidateHeap.pop()
@@ -19,58 +24,75 @@ const findFreePosition = (grid, graph, c0) => {
     const overlap = grid.overlap(candidate)
     // No obstacles.
     if (overlap.length === 0) {
-      return candidate
+      winner = candidate // WINNER!
+      break
     }
     // Just one obstacle. Cannot yet create edge.
     if (overlap.length === 1) {
-      const near = nearestTangent(c0, overlap[0])
-      // Candidate must be a bit larger to ensure hit to overlap.
+      const near = nearestTangent(candidate, overlap[0])
+      // Candidate must be a bit larger to ensure it will hit to overlap.
       near.r *= 1.0001
-      // Distance of zero for immediate pop.
-      candidateHeap.push(near, 0)
+      // OPTIMIZATION? Use d*d? Distance of zero for immediate pop?
+      const d = pointDistance(c0, candidate)
+      candidateHeap.push(near, d)
       continue
     }
     // Else the candidate overlaps two or more circles.
     // Ensure these are connected.
     const edges = graph.clique(overlap)
-    for (let i = 0; i < edges.length; i += 1) {
-      const edge = edges[i]
-      const tangents = edge.getTangentCircles()
-      for (let t = 0; t < tangents.length; t += 1) {
-        const tangent = tangents[t]
-        const dx = tangent.x - c0.x
-        const dy = tangent.y - c0.y
-        const d2 = dx * dx + dy * dy
-        candidateHeap.push(candidate, d2)
+    // Add non-visited edges to further processing.
+    edges.forEach(edge => {
+      if (!edge.visited) {
+        // Harden each edge with respect to the clique.
+        for (let i = 0; i < overlap.length; i += 1) {
+          edge.harden(overlap[i]) // too much repetition?
+        }
+        // Send to tangent circle generation.
+        const d = pointDistance(c0, edge.middle)
+        edgeHeap.push(edge, d)
       }
+    })
+
+    overlap.forEach(hit => {
+      if (candidate.parentEdge) {
+        const edge = candidate.parentEdge
+        edge.limit(hit)
+        const leftEdge = graph.addEdge(edge.c0, hit)
+        const rightEdge = graph.addEdge(edge.c1, hit)
+        // Optimization: limit immediately to avoid unnecessary grid queries.
+        leftEdge.limit(edge.c1)
+        rightEdge.limit(edge.c0)
+      }
+
+      graph.getEdges(hit)
+        .filter(edge => !edge.visited)
+        .forEach(edge => edgeHeap.push(edge))
+    })
+
+    const frontierEdges = []
+    while (edgeHeap.size > 0) {
+      const edge = edgeHeap.pop()
+      const cs = edge.getTangentCircles(c0.r)
+      for (let i = 0; i < cs.length; i += 1) {
+        candidateHeap.push(cs[i], pointDistance(c0, cs[i]))
+      }
+      edge.visited = true
+      visitedEdges.push(edge)
+      frontierEdges.push(edge)
     }
+
+    frontierEdges.forEach(edge => {
+      const adjacent = graph.adjacentEdges(edge).filter(ed => !ed.visited)
+      adjacent.forEach(adj => edgeHeap.push(adj))
+    })
   }
 
-  // No candidates left
-  return null
+  // Clean up for the next race before annoucing winner.
+  visitedEdges.forEach(edge => {
+    edge.visited = false
+  })
 
-  // Find edges with possible free tangent positions -> looseEdges
-  // Do this step without collision detection.
-  // const looseEdges = edges.filter(edge.hasRoomFor(c))
-  // Collect occupied edges -> hardEdges
-  // const hardEdges = edges.filter(!edge.hasRoomFor(c))
-
-  // For each loose edge, generate remaining tangent circle candidates.
-  // For each candidate, do a field collision check.
-  // Collect free candidates and colliding candidates.
-  // If one or more free candidates, pick the closest candidate.
-  // Else, for each loose edge for each collision, create edges between colliders.
-  //   Compute left-hand and right-hand limits for each edge.
-  //   Update the limits of the original loose edge and add to hardEdges.
-  //   Add each new edge to the set of hardEdges.
-
-  // If no free candidate found,
-  // for each hard edge, expand and form the next frontier until one is found.
-
-  // Once a free candidate is found:
-  // - mark all edges and nodes unvisited for the next search.
-  // - create edges between the new candidate and its tangent parents.
-  // - update limits of the edge between parents.
+  return winner
 }
 
 const insert = (grid, graph, c0) => {

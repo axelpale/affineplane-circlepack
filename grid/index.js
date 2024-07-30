@@ -21,6 +21,7 @@ const CircleGrid = function (maxRadius) {
   this.large = []
   // Total number of circles stored.
   this.size = 0
+  // Total number of top-level tiles created.
   this.tiles = 0
 }
 
