@@ -92,6 +92,8 @@ Edge.prototype.harden = function (c2) {
     return
   }
 
+  const maxRadius = maxTangent.r
+
   if (prod > 0) {
     // Left-hand side.
     this.maxLeftRadius = Math.min(this.maxLeftRadius, maxRadius)
