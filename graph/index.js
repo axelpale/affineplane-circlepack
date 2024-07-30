@@ -14,8 +14,31 @@
 const Edge = require('./edge')
 
 const CircleGraph = function () {
-  // A map of maps: cid -> cid -> edge
+  // A map of maps: circle id -> circle id -> edge
   this.edges = {}
+}
+
+CircleGraph.prototype.adjacentEdges = function (edge) {
+  // Get edges adjacent to the given edge.
+  //
+  // Parameter:
+  //   edge
+  //     an Edge
+  //
+  // Return:
+  //   an array of Edge
+  //
+
+  // Nodes
+  const c0 = edge.c0
+  const c1 = edge.c1
+  // Edges of nodes.
+  const edges0 = Object.values(this.edges[c0.i])
+  const edges1 = Object.values(this.edges[c1.i])
+  // Join the edges.
+  const edges = edges0.concat(edges1)
+  // Remove the seed edge (exists twice)
+  return edges.filter(e => e !== edge)
 }
 
 CircleGraph.prototype.addEdge = function (c0, c1) {
@@ -48,8 +71,9 @@ CircleGraph.prototype.addEdge = function (c0, c1) {
       edges[i][j] = edge
     }
   } else {
+    edge = new Edge(c0, c1)
     edges[i] = {}
-    edges[i][j] = new Edge(c0, c1)
+    edges[i][j] = edge
   }
 
   // DEBUG
@@ -58,7 +82,7 @@ CircleGraph.prototype.addEdge = function (c0, c1) {
   // Route from c1 to c0
   if (edges[j]) {
     if (!edges[j][i]) {
-      edge[j][i] = edge
+      edges[j][i] = edge
     }
   } else {
     edges[j] = {}
@@ -118,15 +142,8 @@ CircleGraph.prototype.clique = function (cs) {
         result.push(edges[i][j])
       } else {
         // Create an edge.
-        // Except when the gap between the circles is larger than the diameter of the smallest circle.
-        // TODO OPTIMIZE skip gaps larger than the actual smallest circle diameter?
-        const dx = c1.x - c0.x
-        const dy = c1.y - c0.y
-        const gap = dx * dx + dy * dy - (c0.r + c1.r)
-        if (gap < 2 * c0.r && gap < 2 * c1.r) {
-          const edge = this.addEdge(c0, c1)
-          result.push(edge)
-        }
+        const edge = this.addEdge(c0, c1)
+        result.push(edge)
       }
     }
   }
