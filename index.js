@@ -133,7 +133,7 @@ const insert = (grid, graph, c0) => {
   const c = findFreePosition(grid, graph, c0)
   // DEBUG
   if (!c) {
-    console.warn('No free position found for', c0)
+    console.warn(`No free position found for ${grid.size}th circle:`, c0)
     return null
   }
   // Preserve meta properties.
@@ -217,6 +217,15 @@ const pack = (circles, update, final) => {
     if (batchCounter < sorted.length) {
       const c = sorted[batchCounter]
       const freeCircle = insert(grid, graph, c)
+
+      // DEBUG if no free position found, stop immediately
+      if (!freeCircle) {
+        const bad = Object.assign({}, c, { i: '?', color: { l: 100, a: 0, b: 0 } })
+        update(bad)
+        final(insertedCircles, graph.getEdges())
+        return
+      }
+
       insertedCircles.push(freeCircle)
       const stop = update(freeCircle)
       batchCounter += 1

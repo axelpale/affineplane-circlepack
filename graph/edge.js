@@ -15,6 +15,9 @@ const Edge = function (c0, c1) {
     throw new Error('Invalid circle c1: ' + c1)
   }
 
+  // Label the edges to ease up debugging.
+  this.label = c0.i + '->' + c1.i
+
   // Direction is arbitrary. Gotta name them somehow.
   this.c0 = c0
   this.c1 = c1
@@ -51,23 +54,25 @@ Edge.prototype.getTangentCircles = function (r) {
   //   an array of circle2. May be empty.
   //
   if (this.maxLeftRadius < r) {
+    // Left hand is not available.
+    // How about the right hand?
     if (this.maxRightRadius < r) {
       // No free tangent positions for a circle with radius r.
       return []
     }
-    // Right-hand is available.
+    // Right hand is available.
     const cr = tangentCircle(this.c0, this.c1, r, true)
     return [cr]
   }
-  // Left-hand is available.
-
+  // Left hand is available.
+  // How about the right hand?
   if (this.maxRightRadius < r) {
-    // Right-hand is not available. Return only left-hand.
+    // Right hand is not available. Return only the left hand.
     const cl = tangentCircle(this.c0, this.c1, r, false)
     return [cl]
   }
   // Both hands available.
-
+  // Return both hands with single call.
   return tangentCircles(this.c0, this.c1, r)
 }
 

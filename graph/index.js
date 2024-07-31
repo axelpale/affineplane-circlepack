@@ -139,12 +139,12 @@ CircleGraph.prototype.edgeNeighborhood = function (cs) {
   const result = new Set()
   const n = cs.length
 
-  let i, j, cid, edges
+  let i, j, cid, outboundEdges
   for (i = 0; i < n; i += 1) {
     cid = cs[i].i
-    edges = Object.values(this.edges[cid])
-    for (j = 0; j < edges.length; j += 1) {
-      result.add(edges[j])
+    outboundEdges = Object.values(this.edges[cid])
+    for (j = 0; j < outboundEdges.length; j += 1) {
+      result.add(outboundEdges[j])
     }
   }
 
