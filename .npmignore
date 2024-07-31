@@ -1,0 +1,11 @@
+.editorconfig
+.DS_Store
+.gitignore
+package-lock.json
+
+test.js
+*.test.js
+*.demo.html
+
+affineplane-circlepack.js
+affineplane-circlepack.min.js
