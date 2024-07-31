@@ -87,6 +87,7 @@
           context.fillStyle = color
           context.fill()
           context.stroke()
+          context.closePath()
           if ('i' in circle) {
             context.fillStyle = 'black'
             const fontsize = (1 + Math.round(radius))
@@ -94,6 +95,18 @@
             const offset = Math.floor(fontsize / 4)
             context.fillText(circle.i, x - offset, y + offset)
           }
+        }
+
+        function drawEdge(edge, color) {
+          const c0 = edge.c0
+          const c1 = edge.c1
+          context.beginPath()
+          context.moveTo(c0.x, c0.y)
+          context.lineTo(c1.x, c1.y)
+          context.lineWidth = 1
+          context.strokeStyle = color
+          context.stroke()
+          context.closePath()
         }
 
         function drawCircles() {
@@ -144,12 +157,14 @@
             drawCircle(c, labToCss(c.color))
             // Stop if necessary.
             return stop
-          }, () => {
+          }, (cs, edges) => {
             // Finally:
             // Display run time.
             const endTime = window.performance.now()
             const duration = endTime - startTime
             runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
+            // DEBUG Render edges.
+            edges.forEach(edge => drawEdge(edge, 'black'))
             // Free the semaphore.
             running = false
             // Restart if another call requested for a draw during execution.

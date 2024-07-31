@@ -209,18 +209,20 @@ const pack = (circles, update, final) => {
   }
 
   // Asynchronic run.
-  let batchCounter = 0
-  const speed = 10 // circles per second
+  const insertedCircles = []
+  const speed = 100 // circles per second
   const delay = 1000 / speed
+  let batchCounter = 0
   const tick = () => {
     if (batchCounter < sorted.length) {
       const c = sorted[batchCounter]
-      const free = insert(grid, graph, c)
-      const stop = update(free)
+      const freeCircle = insert(grid, graph, c)
+      insertedCircles.push(freeCircle)
+      const stop = update(freeCircle)
       batchCounter += 1
       if (stop) {
         if (final) {
-          final()
+          final(insertedCircles, graph.getEdges())
         }
       } else {
         // Continue the run.
@@ -229,7 +231,7 @@ const pack = (circles, update, final) => {
     } else {
       // Finished
       if (final) {
-        final()
+        final(insertedCircles, graph.getEdges())
       }
     }
   }
