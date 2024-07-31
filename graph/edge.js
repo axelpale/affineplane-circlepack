@@ -125,11 +125,15 @@ Edge.prototype.harden = function (c2) {
 
   const maxRadius = maxTangent.r
 
-  if (prod > 0) {
-    // Left-hand side.
+  if (prod < 0) {
+    // Negative cross-product
+    // => c2 on the left hand side.
+    // => limit the left-hand side.
     this.maxLeftRadius = Math.min(this.maxLeftRadius, maxRadius)
-  } else if (prod < 0) {
-    // Right-hand side
+  } else {
+    // Positive cross-product
+    // => c2 on the right hand side.
+    // => limit the right-hand side.
     this.maxRightRadius = Math.min(this.maxRightRadius, maxRadius)
   }
 }
