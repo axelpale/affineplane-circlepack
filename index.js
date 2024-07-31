@@ -160,17 +160,27 @@ const insert = (grid, graph, c0) => {
   return cfix
 }
 
-const pack = (circles, update) => {
+const pack = (circles, update, final) => {
   // Arrange the circles so that they do not overlap.
+  // If `update` and `final` callback functions are given
+  // then run in asynchronic manner. Otherwise synchronic.
   //
   // Parameters:
   //   circles
   //     an array of circle2
   //   update
-  //     optional function to be called every 10 insertions.
+  //     optional function (c). Will be called for every inserted circle c.
+  //     If this function is specified, the algorithm will run in asynchronic manner.
+  //     The function may return boolean true to stop
+  //     .. execution and call the final callback immediately.
+  //   final
+  //     optional function (). Will be called after all circles are inserted
+  //     .. or if execution is interrupted.
   //
   // Return:
-  //   an array of circle2
+  //   an array of circle2 for synchronic execution.
+  //   .. Will be undefined for asynchronic execution i.e.
+  //   .. if `update` and `final` callback are specified.
   //
 
   // Special case
@@ -193,20 +203,34 @@ const pack = (circles, update) => {
   // The graph enables fast travel along adjacent circles.
   const graph = new CircleGraph()
 
+  // Synchronic run.
   if (!update) {
     return sorted.map(c => insert(grid, graph, c))
   }
 
-  let batch = 0
+  // Asynchronic run.
+  let batchCounter = 0
   const speed = 10 // circles per second
   const delay = 1000 / speed
   const tick = () => {
-    if (batch < sorted.length) {
-      const c = sorted[batch]
+    if (batchCounter < sorted.length) {
+      const c = sorted[batchCounter]
       const free = insert(grid, graph, c)
-      update(free)
-      batch += 1
-      setTimeout(tick, delay)
+      const stop = update(free)
+      batchCounter += 1
+      if (stop) {
+        if (final) {
+          final()
+        }
+      } else {
+        // Continue the run.
+        setTimeout(tick, delay)
+      }
+    } else {
+      // Finished
+      if (final) {
+        final()
+      }
     }
   }
   tick()
