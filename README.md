@@ -3,7 +3,7 @@
 [![NPM Version](https://img.shields.io/npm/v/affineplane-circlepack.svg?colorB=7fcd0f)](https://www.npmjs.com/package/affineplane-circlepack)
 [![License](https://img.shields.io/npm/l/affineplane)](#license)
 
-Deterministic and order-preserving 2D circle packing algorithm for data visualization.
+Deterministic and order-preserving 2D circle packing algorithm for data visualization. Try the [demo](https://demos.akselipalen.com/circlepack/).
 
 ![affineplane-circlepack social banner](docs/affineplane-circlepack.png)
 
