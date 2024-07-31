@@ -17,6 +17,8 @@ test('basic graph operations', (t) => {
 
   const edsAll = g.getEdges()
   t.equal(edsAll.length, 4, 'should return all edges, no duplicates')
+  t.ok(edsAll.includes(e20))
+  t.ok(edsAll.includes(e03))
 
   const eds1 = g.incidentEdges(c1)
   t.equal(eds1.length, 2, 'should have correct number of edges')

@@ -17,6 +17,8 @@ const findFreePosition = (grid, graph, c0) => {
   // Rank tangent circle candidates by distance.
   const candidateHeap = new BinaryHeap()
   const edgeHeap = new BinaryHeap()
+
+  // Track which edges to clean up afterwards.
   const visitedEdges = []
 
   let winner = null
@@ -51,13 +53,14 @@ const findFreePosition = (grid, graph, c0) => {
       const edges = graph.incidentEdges(c)
       if (edges.length > 0) {
         // Edges available for tangent generation and traversal.
-        edges.forEach(edge => {
+        for (let i = 0; i < edges.length; i++) {
+          const edge = edges[i]
           if (!edge.visited) {
             edgeHeap.push(edge, dist2(c0, edge.middle))
             edge.visited = true
             visitedEdges.push(edge)
           }
-        })
+        }
       } else {
         // No edges available. Try the default position.
         const nextCandidate = nearestTangent(candidate, c)
@@ -71,36 +74,36 @@ const findFreePosition = (grid, graph, c0) => {
       // The candidate overlaps two or more circles.
       // Ensure these circles are connected.
 
-      const clique = overlap.slice()
       // If candidate has known parents, they do not overlap with the candidate.
       // Therefore they are not included in the overlap array.
       // In order to ensure that edges exist between the parents and
-      // the overlapping nodes, add them to the clique for which to create edges.
+      // the overlapping nodes, add them to the seet for which to create edges.
       if (candidate.parent) {
-        clique.push(candidate.parent)
+        overlap.push(candidate.parent)
       }
       if (candidate.parentEdge) {
         const edge = candidate.parentEdge
-        clique.push(edge.c0)
-        clique.push(edge.c1)
+        overlap.push(edge.c0)
+        overlap.push(edge.c1)
       }
       // Create all missing edges between these already-inserted circles.
-      const edges = graph.addEdges(clique)
+      const edges = graph.addEdges(overlap)
 
-      // Add non-visited edges to further processing.
-      edges.forEach(edge => {
+      // Add non-visited edges for further processing.
+      for (let i = 0; i < edges.length; i++) {
+        const edge = edges[i]
         if (!edge.visited) {
-          // Harden each edge with respect to the clique.
-          // Some circle subsets in the clique might be linearly dependent.
-          for (let i = 0; i < clique.length; i += 1) {
-            edge.harden(clique[i]) // too much repetition?
+          // Harden each edge with respect to the overlap.
+          // Some circle subsets in the overlap might be linearly dependent.
+          for (let j = 0; j < overlap.length; j++) {
+            edge.harden(overlap[j])
           }
           // Send the edge to tangent circle generation.
           edgeHeap.push(edge, dist2(c0, edge.middle))
           edge.visited = true
           visitedEdges.push(edge)
         }
-      })
+      }
     }
 
     // Travel and visit the edges until some circle candidates are found.
@@ -115,18 +118,19 @@ const findFreePosition = (grid, graph, c0) => {
       }
       // Expand to adjacent edges that might not be reachable via collisions.
       const adjacent = graph.adjacentEdges(edge)
-      adjacent.filter(ed => !ed.visited).forEach(adj => {
+      for (let i = 0; i < adjacent.length; i += 1) {
+        const adj = adjacent[i]
         edgeHeap.push(adj, dist2(c0, adj.middle))
         adj.visited = true
         visitedEdges.push(adj)
-      })
+      }
     }
   }
 
   // Clean up for the next race before annoucing winner.
-  visitedEdges.forEach(edge => {
-    edge.visited = false
-  })
+  for (let i = 0; i < visitedEdges.length; i++) {
+    visitedEdges[i].visited = false
+  }
 
   return winner
 }
@@ -213,7 +217,11 @@ const pack = (circles, update, final) => {
 
   // Synchronic run.
   if (!update) {
-    return sorted.map(c => insert(grid, graph, c))
+    const packed = []
+    for (let i = 0; i < sorted.length; i++) {
+      packed.push(insert(grid, graph, sorted[i]))
+    }
+    return packed
   }
 
   // Asynchronic run.

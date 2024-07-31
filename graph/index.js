@@ -113,7 +113,7 @@ CircleGraph.prototype.addEdges = function (cs) {
 }
 
 CircleGraph.prototype.adjacentEdges = function (edge) {
-  // Get edges adjacent to the given edge.
+  // Get non-visited edges adjacent to the given edge.
   // The result does not include the given edge.
   //
   // Parameter:
@@ -123,17 +123,32 @@ CircleGraph.prototype.adjacentEdges = function (edge) {
   // Return:
   //   an array of Edge
   //
+  const result = []
 
-  // Nodes
-  const c0 = edge.c0
-  const c1 = edge.c1
-  // Edges of nodes.
-  const edges0 = Object.values(this.edges[c0.i])
-  const edges1 = Object.values(this.edges[c1.i])
-  // Join the edges.
-  const edges = edges0.concat(edges1)
-  // Remove the given edge (exists twice)
-  return edges.filter(e => e !== edge)
+  // Edges
+  const edges0 = Object.values(this.edges[edge.c0.i])
+  const edges1 = Object.values(this.edges[edge.c1.i])
+
+  let ed
+  for (let i = 0; i < edges0.length; i += 1) {
+    ed = edges0[i]
+    // Skip the given edge (exists twice).
+    // Also skip the visited edges.
+    if (ed !== edge && !ed.visited) {
+      result.push(ed)
+    }
+  }
+
+  for (let i = 0; i < edges1.length; i += 1) {
+    ed = edges1[i]
+    // Skip the given edge (exists twice).
+    // Also skip the visited edges.
+    if (ed !== edge && !ed.visited) {
+      result.push(ed)
+    }
+  }
+
+  return result
 }
 
 CircleGraph.prototype.getEdges = function () {
