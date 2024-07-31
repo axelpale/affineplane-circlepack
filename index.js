@@ -160,6 +160,8 @@ const insert = (grid, graph, c0) => {
     const parentEdge = c.parentEdge
     graph.addEdge(parentEdge.c0, cfix)
     graph.addEdge(parentEdge.c1, cfix)
+    // Immediately harden the edge limits.
+    parentEdge.harden(c)
   }
 
   // Finished.

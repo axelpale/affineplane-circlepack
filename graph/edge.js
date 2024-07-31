@@ -36,7 +36,7 @@ const Edge = function (c0, c1) {
   }
 
   // Tangent properties
-  this.touching = (Math.abs(this.gap) < affineplane.epsilon)
+  this.touching = (Math.abs(this.gap) < epsilon)
   // Given that circles are inserted largest first,
   // we cannot find larger than the smallest of the two circles.
   this.maxLeftRadius = Math.min(c0.r, c1.r)
@@ -81,16 +81,18 @@ Edge.prototype.harden = function (c2) {
   // by discovery of c2 nearby c0 and c1.
   // Requirement: circles are discovered largest first.
   //
+  const c0 = this.c0
+  const c1 = this.c1
 
-  if (this.c0 === c2 || this.c1 === c2) {
+  if (c0 === c2 || c1 === c2) {
     // Nothing to harden
     return
   }
 
   // Find if c2 is at the left-hand or right-hand side.
   // Use cross product to decide.
-  const dx = c2.x - this.c0.x
-  const dy = c2.y - this.c0.y
+  const dx = c2.x - c0.x
+  const dy = c2.y - c0.y
   const prod = this.dx * dy - this.dy * dx
 
   if (Math.abs(prod) < epsilon) {
@@ -98,14 +100,14 @@ Edge.prototype.harden = function (c2) {
     // If c2 is in the gap, we cannot place anything between.
     // Edges between c0 and c2, or c1 and c2, are better suited for
     // tangent discovery.
-    const d02 = pointDistance(this.c0, c2)
-    const d12 = pointDistance(this.c1, c2)
+    const d02 = pointDistance(c0, c2)
+    const d12 = pointDistance(c1, c2)
     // The c2 is in the gap if the sum of its distances to the two circles
     // is equal than the distance between the two circles, but
     // larger than their radii.
     if (d02 + d12 <= this.d + epsilon) {
       // The c2 is between c0 and c1.
-      if (d02 >= this.c0.r + c2.r && d12 >= this.c1.r + c2.r) {
+      if (d02 >= c0.r + c2.r && d12 >= c1.r + c2.r) {
         // The c2 is in the gap.
         this.maxLeftRadius = 0
         this.maxRightRadius = 0
@@ -115,15 +117,24 @@ Edge.prototype.harden = function (c2) {
     return
   }
 
-  const maxTangent = apollonius(this.c0, this.c1, c2)
-  if (!maxTangent) {
-    console.log('Cannot find apollonius circle')
-    console.log(this.c0, this.c1, c2)
-    // We thus cannot adjust the radii.
-    return
+  // Find maximum radius that can fit between c0, c1, c2.
+  let maxRadius
+  if (c2.parentEdge === this && this.touching) {
+    // The three circles are touching.
+    // Thus we can use the lightweight Descartes' theorem.
+    maxRadius = innerRadius(c0.r, c1.r, c2.r)
+  } else {
+    // The three circles are not all touching.
+    // Find maximum circle that fits them.
+    const maxTangent = apollonius(c0, c1, c2)
+    if (!maxTangent) {
+      console.log('Cannot find apollonius circle')
+      console.log(c0, c1, c2)
+      // We thus cannot adjust the radii.
+      return
+    }
+    maxRadius = maxTangent.r
   }
-
-  const maxRadius = maxTangent.r
 
   if (prod < 0) {
     // Negative cross-product
@@ -135,32 +146,6 @@ Edge.prototype.harden = function (c2) {
     // => c2 on the right hand side.
     // => limit the right-hand side.
     this.maxRightRadius = Math.min(this.maxRightRadius, maxRadius)
-  }
-}
-
-Edge.prototype.hardenTangent = function (c2) {
-  // Harden the limits of available tangent circles
-  // by discovery of c2 that is assumed to be
-  // tangent to c0 and c1.
-  //
-
-  // Find if c2 is at the left-hand or right-hand side.
-  // Use cross product.
-  const dx = c2.x - this.c0.x
-  const dy = c2.y - this.c0.y
-  const prod = this.dx * dy - this.dy * dx
-
-  const maxRadius = innerRadius(this.c0.r, this.c1.r, c2.r)
-
-  if (prod > 0) {
-    // Left-hand side
-    this.maxLeftRadius = Math.min(this.maxLeftRadius, maxRadius)
-  } else if (prod < 0) {
-    // Right-hand side
-    this.maxRightRadius = Math.min(this.maxRightRadius, maxRadius)
-  } else {
-    // The cross product is zero. At the line. Weird.
-    console.warn('Weird tangent position.')
   }
 }
 
