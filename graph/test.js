@@ -13,6 +13,10 @@ test('basic graph operations', (t) => {
   const e12 = g.addEdge(c1, c2)
   const e20 = g.addEdge(c2, c0)
   const e03 = g.addEdge(c0, c3) // escapes triangle
+  g.addEdge(c0, c1) // attempt to insert duplicate
+
+  const edsAll = g.getEdges()
+  t.equal(edsAll.length, 4, 'should return all edges, no duplicates')
 
   const eds1 = g.incidentEdges(c1)
   t.equal(eds1.length, 2, 'should have correct number of edges')
@@ -42,6 +46,7 @@ test('graph add clique of edges', (t) => {
   const c2 = { i: 2 }
 
   g.addEdges([c0, c1, c2])
+  t.equal(g.getEdges().length, 3, 'should have created three edges')
 
   t.ok(g.edges[0][1], 'edge 01 exists')
   t.ok(g.edges[1][0], 'edge 10 exists')

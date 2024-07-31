@@ -151,6 +151,28 @@ CircleGraph.prototype.edgeNeighborhood = function (cs) {
   return Array.from(result)
 }
 
+CircleGraph.prototype.getEdges = function () {
+  // Collect all edges of the graph into an array.
+  //
+  const result = []
+  const nodeIds = Object.keys(this.edges)
+  const n = nodeIds.length
+
+  // Because all edge pairs are routed symmetrically
+  // it is enough to loop through half of the ordered pairs.
+  for (let i = 0; i < n; i += 1) {
+    for (let j = i + 1; j < n; j += 1) {
+      const source = nodeIds[i]
+      const targets = this.edges[source]
+      if (targets[j]) {
+        result.push(targets[j])
+      }
+    }
+  }
+
+  return result
+}
+
 CircleGraph.prototype.incidentEdges = function (c) {
   // Get edges incident on the circle.
   //
