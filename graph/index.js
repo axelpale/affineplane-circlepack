@@ -22,6 +22,8 @@ const CircleGraph = function () {
 CircleGraph.prototype.addEdge = function (c0, c1) {
   // Ensure the edge exists between two circles.
   // If edge does not exist, create and add.
+  // Will prevent self-loop edges if the given circles are equal and
+  // will return null if so.
   //
   // Parameters:
   //   c0
@@ -33,10 +35,16 @@ CircleGraph.prototype.addEdge = function (c0, c1) {
   //   an Edge
   //
 
-  // Shorthand
-  const edges = this.edges
+  // Circle identifiers
   const i = c0.i
   const j = c1.i
+  // Prevent self-loops.
+  if (i === j) {
+    return
+  }
+
+  // Shorthand
+  const edges = this.edges
   // We may or may not create an edge.
   let edge
 
@@ -87,7 +95,7 @@ CircleGraph.prototype.addEdges = function (cs) {
       const c1 = cs[y]
       const i = c0.i
       const j = c1.i
-      if (!edges[i] || !edges[i][j]) {
+      if (i !== j && (!edges[i] || !edges[i][j])) {
         // Edge does not exist. Create an edge.
         this.addEdge(c0, c1)
       }
