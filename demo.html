@@ -89,11 +89,14 @@
           context.stroke()
           context.closePath()
           if ('i' in circle) {
+            const label = '' + circle.i
             context.fillStyle = 'black'
             const fontsize = (1 + Math.round(radius))
             context.font = fontsize + 'px serif'
             const offset = Math.floor(fontsize / 4)
-            context.fillText(circle.i, x - offset, y + offset)
+            const offsetX = -label.length * offset
+            const offsetY = offset
+            context.fillText(label, x + offsetX, y + offsetY)
           }
         }
 
