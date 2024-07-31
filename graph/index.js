@@ -136,31 +136,6 @@ CircleGraph.prototype.adjacentEdges = function (edge) {
   return edges.filter(e => e !== edge)
 }
 
-CircleGraph.prototype.edgeNeighborhood = function (cs) {
-  // Get all edges that are incident to at least one circle of cs.
-  //
-  // Parameters:
-  //   cs
-  //     an array of circle2
-  //
-  // Return:
-  //   an array of Edge
-  //
-  const result = new Set()
-  const n = cs.length
-
-  let i, j, cid, outboundEdges
-  for (i = 0; i < n; i += 1) {
-    cid = cs[i].i
-    outboundEdges = Object.values(this.edges[cid])
-    for (j = 0; j < outboundEdges.length; j += 1) {
-      result.add(outboundEdges[j])
-    }
-  }
-
-  return Array.from(result)
-}
-
 CircleGraph.prototype.getEdges = function () {
   // Collect all edges of the graph into an array.
   //

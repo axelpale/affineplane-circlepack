@@ -26,15 +26,6 @@ test('basic graph operations', (t) => {
   const eds0 = g.incidentEdges(c0)
   t.equal(eds0.length, 3, 'should have correct number of edges')
 
-  const ne0 = g.edgeNeighborhood([c0])
-  t.equal(ne0.length, 3, 'should match incident edges')
-  t.equal(ne0[0], e01, 'should follow insertion order')
-
-  const ne12 = g.edgeNeighborhood([c1, c2])
-  t.equal(ne12.length, 3, 'should have correct number of edges')
-  t.ok(ne12.indexOf(e20) >= 0, 'should include e20 edge')
-  t.equal(ne12.indexOf(e03), -1, 'should exclude e03 edge')
-
   t.end()
 })
 
