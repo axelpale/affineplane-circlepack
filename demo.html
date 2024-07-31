@@ -43,7 +43,9 @@
         <option value="gaussian">gaussian</option>
       </select><br>
       <input type="checkbox" id="asyncrun" name="asyncrun" checked />
-      <label for="asyncrun">Asynchronic execution</label>
+      <label for="asyncrun">Asynchronic execution</label><br>
+      <input type="checkbox" id="renderlabels" name="renderlabels" />
+      <label for="renderlabels">Render labels</label>
     </form>
     <p style="max-width: 500px;">&#9432; This demo features a circle packing algorithm
       that prevents circles from overlapping but also respects the original circle
@@ -68,6 +70,7 @@
         let running = false
         let stop = false
         let asynchronic = true
+        let renderLabels = false
 
         // Setup the canvas and its context
         const canvas = document.getElementById('myCanvas')
@@ -88,7 +91,7 @@
           context.fill()
           context.stroke()
           context.closePath()
-          if ('i' in circle) {
+          if (renderLabels && 'i' in circle) {
             const label = '' + circle.i
             context.fillStyle = 'black'
             const fontsize = (1 + Math.round(radius))
@@ -267,6 +270,7 @@
         const inputMaxRadius = document.getElementById('maxradius')
         const inputShape = document.getElementById('dropshape')
         const inputAsync = document.getElementById('asyncrun')
+        const inputLabels = document.getElementById('renderlabels')
         const readForm = () => {
           // Toggle packing
           enablePacking = (inputEnablePacking.checked ? true : false)
@@ -292,6 +296,8 @@
           shape = inputShape.value
           // Asynchronity
           asynchronic = (inputAsync.checked ? true : false)
+          // Label rendering
+          renderLabels = (inputLabels.checked ? true : false)
         }
         const refresh = () => {
           readForm()
@@ -312,6 +318,7 @@
         inputMaxRadius.addEventListener('change', regenerate)
         inputShape.addEventListener('change', regenerate)
         inputAsync.addEventListener('change', refresh)
+        inputLabels.addEventListener('change', refresh)
 
         // Initial drawing
         regenerate()
