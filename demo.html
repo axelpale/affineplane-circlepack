@@ -42,8 +42,8 @@
       <option value="cross">cross</option>
       <option value="gaussian">gaussian</option>
     </select><br>
-    <input type="checkbox" id="asyncrun" name="asyncrun" />
-    <label for="asyncrun">Asynchronic execution</label><br>
+    <input type="checkbox" id="syncrun" name="syncrun" />
+    <label for="syncrun">Synchronic execution (faster)</label><br>
     <input type="checkbox" id="renderlabels" name="renderlabels" />
     <label for="renderlabels">Render labels</label>
   </form>
@@ -69,7 +69,7 @@
     let shape = 'square'
     let running = false
     let stop = false
-    let asynchronic = false
+    let synchronic = false
     let renderLabels = false
 
     // Setup the canvas and its context
@@ -129,7 +129,7 @@
         return
       }
 
-      if (!asynchronic) {
+      if (synchronic) {
         // Begin record run time.
         const startTime = window.performance.now()
         // Clear run time display.
@@ -272,7 +272,7 @@
     const inputMinRadius = document.getElementById('minradius')
     const inputMaxRadius = document.getElementById('maxradius')
     const inputShape = document.getElementById('dropshape')
-    const inputAsync = document.getElementById('asyncrun')
+    const inputSync = document.getElementById('syncrun')
     const inputLabels = document.getElementById('renderlabels')
     const readForm = () => {
       // Toggle packing
@@ -298,7 +298,7 @@
       // Shape
       shape = inputShape.value
       // Asynchronity
-      asynchronic = (inputAsync.checked ? true : false)
+      synchronic = (inputSync.checked ? true : false)
       // Label rendering
       renderLabels = (inputLabels.checked ? true : false)
     }
@@ -320,7 +320,7 @@
     inputMinRadius.addEventListener('change', regenerate)
     inputMaxRadius.addEventListener('change', regenerate)
     inputShape.addEventListener('change', regenerate)
-    inputAsync.addEventListener('change', refresh)
+    inputSync.addEventListener('change', refresh)
     inputLabels.addEventListener('change', refresh)
 
     // Initial drawing
