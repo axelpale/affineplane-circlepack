@@ -27,11 +27,11 @@
       <input type="checkbox" id="enablepacking" name="enablepacking" checked />
       <label for="enablepacking">Enable Circle Packing</label><br><br>
       <label for="numcircles">Number of Circles:</label>
-      <input type="number" id="numcircles" name="numcircles" min="0" max="4000" step="10" value="400" /><br>
+      <input type="number" id="numcircles" name="numcircles" min="0" max="4000" step="10" value="1000" /><br>
       <label for="minradius">Minimum Radius:</label>
       <input type="number" id="minradius" name="minradius" min="1" max="100" step="1" value="2" /> pixels<br>
       <label for="maxradius">Maximum Radius:</label>
-      <input type="number" id="maxradius" name="maxradius" min="1" max="100" step="1" value="16" /> pixels<br>
+      <input type="number" id="maxradius" name="maxradius" min="1" max="100" step="1" value="10" /> pixels<br>
       <label for="dropshape">Input Shape:</label>
       <select id="dropshape" name="dropshape">
         <option value="square" selected>square</option>
@@ -42,7 +42,7 @@
         <option value="cross">cross</option>
         <option value="gaussian">gaussian</option>
       </select><br>
-      <input type="checkbox" id="asyncrun" name="asyncrun" checked />
+      <input type="checkbox" id="asyncrun" name="asyncrun" />
       <label for="asyncrun">Asynchronic execution</label><br>
       <input type="checkbox" id="renderlabels" name="renderlabels" />
       <label for="renderlabels">Render labels</label>
@@ -62,14 +62,14 @@
 
         // State
         let enablePacking = true
-        let numCircles = 400
+        let numCircles = 1000
         let minRadius = 2
-        let maxRadius = 16
+        let maxRadius = 10
         let circles = []
         let shape = 'square'
         let running = false
         let stop = false
-        let asynchronic = true
+        let asynchronic = false
         let renderLabels = false
 
         // Setup the canvas and its context
