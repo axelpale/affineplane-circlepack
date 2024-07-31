@@ -241,7 +241,7 @@ affineplane.sphere2.pack = pack
 affineplane.circle2.pack = pack
 
 // Ensure in-browser availability.
-if (window) {
+if (typeof window !== 'undefined') {
   window.affineplane = affineplane
 }
 

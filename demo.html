@@ -41,7 +41,9 @@
         <option value="line">line</option>
         <option value="cross">cross</option>
         <option value="gaussian">gaussian</option>
-      </select>
+      </select><br>
+      <input type="checkbox" id="asyncrun" name="asyncrun" checked />
+      <label for="asyncrun">Asynchronic execution</label>
     </form>
     <p style="max-width: 500px;">&#9432; This demo features a circle packing algorithm
       that prevents circles from overlapping but also respects the original circle
@@ -65,6 +67,7 @@
         let shape = 'square'
         let running = false
         let stop = false
+        let asynchronic = true
 
         // Setup the canvas and its context
         const canvas = document.getElementById('myCanvas')
@@ -96,48 +99,66 @@
         function drawCircles() {
           context.clearRect(0, 0, canvas.width, canvas.height)
 
-          if (enablePacking) {
-            // Semaphore
-            if (running) {
-              stop = true
-              return
-            }
-            running = true
-            // Begin record run time.
-            const startTime = window.performance.now()
-            // Clear run time display.
-            runtimeDisplay.innerHTML = ''
-            // Perform circle packing
-            const packed = pack(circles, (c) => {
-              drawCircle(c, labToCss(c.color))
-            })
-
-            // Sync update
-            // const packed = pack(circles)
-            // let circleCounter = 0
-            // while (circleCounter < packed.length) {
-            //   const c = packed[circleCounter]
-            //   drawCircle(c, labToCss(c.color))
-            //   circleCounter += 1
-            // }
-
-            // Finally
-            const endTime = window.performance.now()
-            const duration = endTime - startTime
-            runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
-            // Free the semaphore. Redraw if requested.
-            running = false
-            if (stop) {
-              stop = false
-              drawCircles()
-            }
-          } else {
+          if (!enablePacking) {
+            // Just draw the original unpacked circles.
             for (let c of circles) {
               drawCircle(c, labToCss(c.color))
             }
             // Clear run time display because not packing.
             runtimeDisplay.innerHTML = ''
+            // Finished
+            return
           }
+
+          if (!asynchronic) {
+            // Begin record run time.
+            const startTime = window.performance.now()
+            // Clear run time display.
+            runtimeDisplay.innerHTML = ''
+            // Perform circle packing
+            const packed = pack(circles)
+            packed.forEach(c => drawCircle(c, labToCss(c.color)))
+            // Display run time
+            const endTime = window.performance.now()
+            const duration = endTime - startTime
+            runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
+            // Finished
+            return
+          }
+
+          // Semaphore to prevent concurrent drawCircles calls.
+          if (running) {
+            stop = true
+            return
+          }
+          running = true
+
+          // Begin record run time.
+          const startTime = window.performance.now()
+          // Clear run time display.
+          runtimeDisplay.innerHTML = ''
+
+          // Perform circle packing
+          const packed = pack(circles, (c) => {
+            // Draw circles one by one.
+            drawCircle(c, labToCss(c.color))
+            // Stop if necessary.
+            return stop
+          }, () => {
+            // Finally:
+            // Display run time.
+            const endTime = window.performance.now()
+            const duration = endTime - startTime
+            runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
+            // Free the semaphore.
+            running = false
+            // Restart if another call requested for a draw during execution.
+            if (stop) {
+              stop = false
+              drawCircles()
+            }
+            // Finished
+          })
         }
 
         // Define shapes.
@@ -227,6 +248,7 @@
         const inputMinRadius = document.getElementById('minradius')
         const inputMaxRadius = document.getElementById('maxradius')
         const inputShape = document.getElementById('dropshape')
+        const inputAsync = document.getElementById('asyncrun')
         const readForm = () => {
           // Toggle packing
           enablePacking = (inputEnablePacking.checked ? true : false)
@@ -250,6 +272,8 @@
           maxRadius = Math.max(minR, maxR)
           // Shape
           shape = inputShape.value
+          // Asynchronity
+          asynchronic = (inputAsync.checked ? true : false)
         }
         const refresh = () => {
           readForm()
@@ -269,6 +293,7 @@
         inputMinRadius.addEventListener('change', regenerate)
         inputMaxRadius.addEventListener('change', regenerate)
         inputShape.addEventListener('change', regenerate)
+        inputAsync.addEventListener('change', refresh)
 
         // Initial drawing
         regenerate()
