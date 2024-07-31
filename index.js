@@ -172,7 +172,7 @@ const insert = (grid, graph, c0) => {
   return cfix
 }
 
-const pack = (circles, update, final) => {
+const pack = (circles, update, final, options) => {
   // Arrange the circles so that they do not overlap.
   // If `update` and `final` callback functions are given
   // then run in asynchronic manner. Otherwise synchronic.
@@ -181,19 +181,31 @@ const pack = (circles, update, final) => {
   //   circles
   //     an array of circle2
   //   update
-  //     optional function (c). Will be called for every inserted circle c.
+  //     optional function (batch). Will be called for every 10 inserted circles.
   //     If this function is specified, the algorithm will run in asynchronic manner.
   //     The function may return boolean true to stop
   //     .. execution and call the final callback immediately.
   //   final
-  //     optional function (). Will be called after all circles are inserted
+  //     optional function (circles). Will be called after all circles are inserted
   //     .. or if execution is interrupted.
+  //   options
+  //     optional object with properties:
+  //       batchSize
+  //         an integer, default is 10
   //
   // Return:
   //   an array of circle2 for synchronic execution.
   //   .. Will be undefined for asynchronic execution i.e.
   //   .. if `update` and `final` callback are specified.
   //
+
+  // Handle options
+  if (!options) {
+    options = {}
+  }
+  if (!options.batchSize || typeof options.batchSize !== 'number') {
+    options.batchSize = 10
+  }
 
   // Special case
   if (circles.length < 2) {
@@ -226,39 +238,52 @@ const pack = (circles, update, final) => {
 
   // Asynchronic run.
   const insertedCircles = []
-  const speed = 100 // circles per second
-  const delay = 1000 / speed
   let batchCounter = 0
   const tick = () => {
-    if (batchCounter < sorted.length) {
-      const c = sorted[batchCounter]
+    const batch = []
+    const firstIndex = batchCounter * options.batchSize
+    const lastIndex = Math.min(firstIndex + options.batchSize, sorted.length)
+
+    if (firstIndex >= sorted.length) {
+      // Finished
+      if (final) {
+        final(insertedCircles, graph.getEdges())
+      }
+      return
+    }
+
+    // Run batch.
+    for (let i = firstIndex; i < lastIndex; i++) {
+      const c = sorted[i]
       const freeCircle = insert(grid, graph, c)
 
       // DEBUG if no free position found, stop immediately
       if (!freeCircle) {
         const bad = Object.assign({}, c, { i: '?', color: { l: 100, a: 0, b: 0 } })
-        update(bad)
+        batch.push(bad)
+        update(batch)
         final(insertedCircles, graph.getEdges())
         return
       }
 
+      batch.push(freeCircle)
       insertedCircles.push(freeCircle)
-      const stop = update(freeCircle)
-      batchCounter += 1
-      if (stop) {
-        if (final) {
-          final(insertedCircles, graph.getEdges())
-        }
-      } else {
-        // Continue the run.
-        setTimeout(tick, delay)
-      }
-    } else {
-      // Finished
+    }
+
+    // Publish the batch result.
+    const stop = update(batch)
+
+    // Stop if requested or continue the run.
+    if (stop) {
       if (final) {
         final(insertedCircles, graph.getEdges())
       }
+      return
     }
+
+    // Continue the run.
+    batchCounter += 1
+    setTimeout(tick, 0)
   }
   tick()
 }

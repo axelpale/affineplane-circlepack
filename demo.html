@@ -158,12 +158,14 @@
       runtimeDisplay.innerHTML = ''
 
       // Perform circle packing
-      const packed = pack(circles, (c) => {
-        // Draw circles one by one.
-        drawCircle(c, labToCss(c.color))
+      const packed = pack(circles, (batch) => {
+        for (let i = 0; i < batch.length; i += 1) {
+          // Draw circles one by one.
+          drawCircle(batch[i], labToCss(batch[i].color))
+        }
         // Stop if necessary.
         return stop
-      }, (cs, edges) => {
+      }, (insertedCircles, edges) => {
         // Finally:
         // Display run time.
         const endTime = window.performance.now()
@@ -171,6 +173,7 @@
         runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
         // DEBUG Render edges.
         edges.forEach(edge => drawEdge(edge, 'black'))
+
         // Free the semaphore.
         running = false
         // Restart if another call requested for a draw during execution.

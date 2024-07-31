@@ -29,5 +29,7 @@ test('asynchronic pack', (t) => {
     t.equal(updates, 6, 'should call update for each circle')
 
     t.end()
+  }, {
+    batchSize: 1
   })
 })
