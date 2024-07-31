@@ -45,7 +45,8 @@ test('graph add clique of edges', (t) => {
   const c1 = { i: 1 }
   const c2 = { i: 2 }
 
-  g.addEdges([c0, c1, c2])
+  const ensuredEdges = g.addEdges([c0, c1, c2])
+  t.equal(ensuredEdges.length, 3, 'should have ensured three edges')
   const allEdges = g.getEdges()
   t.equal(allEdges.length, 3, 'should have created three edges')
 

@@ -79,7 +79,8 @@ CircleGraph.prototype.addEdge = function (c0, c1) {
 }
 
 CircleGraph.prototype.addEdges = function (cs) {
-  // Create any missing edges between these circles.
+  // Create any missing edges and then
+  // return all the edges between these circles.
   //
   // Parameters:
   //   cs
@@ -87,20 +88,28 @@ CircleGraph.prototype.addEdges = function (cs) {
   //
   const edges = this.edges
   const n = cs.length
+  const result = []
 
-  // For each pair of circles...
+  // For each non-symmetrical pair of circles...
   for (let x = 0; x < n; x += 1) {
     const c0 = cs[x]
     for (let y = x + 1; y < n; y += 1) {
       const c1 = cs[y]
       const i = c0.i
       const j = c1.i
-      if (i !== j && (!edges[i] || !edges[i][j])) {
-        // Edge does not exist. Create an edge.
-        this.addEdge(c0, c1)
+      if (i !== j) {
+        if (edges[i] && edges[i][j]) {
+          // Edge exists.
+          result.push(edges[i][j])
+        } else {
+          // Edge does not exist. Create an edge.
+          result.push(this.addEdge(c0, c1))
+        }
       }
     }
   }
+
+  return result
 }
 
 CircleGraph.prototype.adjacentEdges = function (edge) {
