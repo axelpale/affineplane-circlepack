@@ -151,7 +151,7 @@ CircleGraph.prototype.edgeNeighborhood = function (cs) {
   return Array.from(result)
 }
 
-CircleGraph.prototype.getEdges = function (c) {
+CircleGraph.prototype.incidentEdges = function (c) {
   // Get edges incident on the circle.
   //
   // Parameters:

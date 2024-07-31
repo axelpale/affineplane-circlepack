@@ -14,12 +14,12 @@ test('basic graph operations', (t) => {
   const e20 = g.addEdge(c2, c0)
   const e03 = g.addEdge(c0, c3) // escapes triangle
 
-  const eds1 = g.getEdges(c1)
+  const eds1 = g.incidentEdges(c1)
   t.equal(eds1.length, 2, 'should have correct number of edges')
   t.equal(eds1[0], e01, 'should follow insertion order')
   t.equal(eds1[1], e12, 'should follow insertion order')
 
-  const eds0 = g.getEdges(c0)
+  const eds0 = g.incidentEdges(c0)
   t.equal(eds0.length, 3, 'should have correct number of edges')
 
   const ne0 = g.edgeNeighborhood([c0])

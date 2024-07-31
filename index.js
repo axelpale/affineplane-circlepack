@@ -43,7 +43,7 @@ const findFreePosition = (grid, graph, c0) => {
       }
       // Compute distance to each non-visited edge
       // and place them to tangent generation.
-      const edges = graph.getEdges(c)
+      const edges = graph.incidentEdges(c)
       if (edges.length > 0) {
         // Edges available for tangent generation and traversal.
         edges.forEach(edge => {
