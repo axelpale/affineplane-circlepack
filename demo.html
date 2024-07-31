@@ -1,327 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circle Pack | Affineplane</title>
-    <style>
-      form {
-        max-width: 500px;
-        font-size: 1.1rem;
-      }
-      form input, form select {
-        font-size: 1.1rem;
-      }
-      .runtime {
-        float: right;
-        font-style: italic;
-        color: #666;
-      }
-    </style>
-    <script src="affineplane-circlepack.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circle Pack | Affineplane</title>
+  <style>
+    form {
+      max-width: 500px;
+      font-size: 1.1rem;
+    }
+    form input, form select {
+      font-size: 1.1rem;
+    }
+    .runtime {
+      float: right;
+      font-style: italic;
+      color: #666;
+    }
+  </style>
+  <script src="affineplane-circlepack.js"></script>
 </head>
 <body>
-    <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
-    <form>
-      <div id="runtime" class="runtime"></div>
-      <input type="checkbox" id="enablepacking" name="enablepacking" checked />
-      <label for="enablepacking">Enable Circle Packing</label><br><br>
-      <label for="numcircles">Number of Circles:</label>
-      <input type="number" id="numcircles" name="numcircles" min="0" max="4000" step="10" value="1000" /><br>
-      <label for="minradius">Minimum Radius:</label>
-      <input type="number" id="minradius" name="minradius" min="1" max="100" step="1" value="2" /> pixels<br>
-      <label for="maxradius">Maximum Radius:</label>
-      <input type="number" id="maxradius" name="maxradius" min="1" max="100" step="1" value="10" /> pixels<br>
-      <label for="dropshape">Input Shape:</label>
-      <select id="dropshape" name="dropshape">
-        <option value="square" selected>square</option>
-        <option value="circle">circle</option>
-        <option value="point">point</option>
-        <option value="pair">pair</option>
-        <option value="line">line</option>
-        <option value="cross">cross</option>
-        <option value="gaussian">gaussian</option>
-      </select><br>
-      <input type="checkbox" id="asyncrun" name="asyncrun" />
-      <label for="asyncrun">Asynchronic execution</label><br>
-      <input type="checkbox" id="renderlabels" name="renderlabels" />
-      <label for="renderlabels">Render labels</label>
-    </form>
-    <p style="max-width: 500px;">&#9432; This demo features a circle packing algorithm
-      that prevents circles from overlapping but also respects the original circle
-      positions as closely as possible.
-      Toggle <em>Enable Circle Packing</em> to observe positions before and after.
-      This kind of circle packing can be applied to data visualization where
-      each data item is required to be visible while also preserving their two-dimensional arrangement.
-      This demo is built on top of my <a href="https://axelpale.github.io/affineplane/">affineplane</a> geometry library.
-      <a href="https://www.akselipalen.com">Akseli Palén</a>, 2024.
-    </p>
-    <script>
-        // Import
-        const pack = affineplane.sphere2.pack
+  <canvas id="myCanvas" width="500" height="500" style="border:1px solid #000000;"></canvas>
+  <form>
+    <div id="runtime" class="runtime"></div>
+    <input type="checkbox" id="enablepacking" name="enablepacking" checked />
+    <label for="enablepacking">Enable Circle Packing</label><br><br>
+    <label for="numcircles">Number of Circles:</label>
+    <input type="number" id="numcircles" name="numcircles" min="0" max="4000" step="10" value="1000" /><br>
+    <label for="minradius">Minimum Radius:</label>
+    <input type="number" id="minradius" name="minradius" min="1" max="100" step="1" value="2" /> pixels<br>
+    <label for="maxradius">Maximum Radius:</label>
+    <input type="number" id="maxradius" name="maxradius" min="1" max="100" step="1" value="10" /> pixels<br>
+    <label for="dropshape">Input Shape:</label>
+    <select id="dropshape" name="dropshape">
+      <option value="square" selected>square</option>
+      <option value="circle">circle</option>
+      <option value="point">point</option>
+      <option value="pair">pair</option>
+      <option value="line">line</option>
+      <option value="cross">cross</option>
+      <option value="gaussian">gaussian</option>
+    </select><br>
+    <input type="checkbox" id="asyncrun" name="asyncrun" />
+    <label for="asyncrun">Asynchronic execution</label><br>
+    <input type="checkbox" id="renderlabels" name="renderlabels" />
+    <label for="renderlabels">Render labels</label>
+  </form>
+  <p style="max-width: 500px;">&#9432; This demo features a circle packing algorithm
+    that prevents circles from overlapping but also respects the original circle
+    positions as closely as possible.
+    Toggle <em>Enable Circle Packing</em> to observe positions before and after.
+    This kind of circle packing can be applied to data visualization where
+    each data item is required to be visible while also preserving their two-dimensional arrangement.
+    This demo is built on top of my <a href="https://axelpale.github.io/affineplane/">affineplane</a> geometry library.
+    <a href="https://www.akselipalen.com">Akseli Palén</a>, 2024.
+  </p>
+  <script>
+    // Import
+    const pack = affineplane.sphere2.pack
 
-        // State
-        let enablePacking = true
-        let numCircles = 1000
-        let minRadius = 2
-        let maxRadius = 10
-        let circles = []
-        let shape = 'square'
-        let running = false
-        let stop = false
-        let asynchronic = false
-        let renderLabels = false
+    // State
+    let enablePacking = true
+    let numCircles = 1000
+    let minRadius = 2
+    let maxRadius = 10
+    let circles = []
+    let shape = 'square'
+    let running = false
+    let stop = false
+    let asynchronic = false
+    let renderLabels = false
 
-        // Setup the canvas and its context
-        const canvas = document.getElementById('myCanvas')
-        const context = canvas.getContext('2d')
-        // Run duration display
-        const runtimeDisplay = document.getElementById('runtime')
+    // Setup the canvas and its context
+    const canvas = document.getElementById('myCanvas')
+    const context = canvas.getContext('2d')
+    // Run duration display
+    const runtimeDisplay = document.getElementById('runtime')
 
-        // Utility
-        const labToCss = (lab) => `lab(${lab.l.toFixed(4)}% ${lab.a.toFixed(4)} ${lab.b.toFixed(4)})`
+    // Utility
+    const labToCss = (lab) => `lab(${lab.l.toFixed(4)}% ${lab.a.toFixed(4)} ${lab.b.toFixed(4)})`
 
-        function drawCircle(circle, color) {
-          const x = circle.x
-          const y = circle.y
-          const radius = circle.r
-          context.beginPath()
-          context.arc(x, y, radius, 0, 2 * Math.PI, false)
-          context.fillStyle = color
-          context.fill()
-          context.stroke()
-          context.closePath()
-          if (renderLabels && 'i' in circle) {
-            const label = '' + circle.i
-            context.fillStyle = 'black'
-            const fontsize = (1 + Math.round(radius))
-            context.font = fontsize + 'px serif'
-            const offset = Math.floor(fontsize / 4)
-            const offsetX = -label.length * offset
-            const offsetY = offset
-            context.fillText(label, x + offsetX, y + offsetY)
+    function drawCircle(circle, color) {
+      const x = circle.x
+      const y = circle.y
+      const radius = circle.r
+      context.beginPath()
+      context.arc(x, y, radius, 0, 2 * Math.PI, false)
+      context.fillStyle = color
+      context.fill()
+      context.stroke()
+      context.closePath()
+      if (renderLabels && 'i' in circle) {
+        const label = '' + circle.i
+        context.fillStyle = 'black'
+        const fontsize = (1 + Math.round(radius))
+        context.font = fontsize + 'px serif'
+        const offset = Math.floor(fontsize / 4)
+        const offsetX = -label.length * offset
+        const offsetY = offset
+        context.fillText(label, x + offsetX, y + offsetY)
+      }
+    }
+
+    function drawEdge(edge, color) {
+      const c0 = edge.c0
+      const c1 = edge.c1
+      context.beginPath()
+      context.moveTo(c0.x, c0.y)
+      context.lineTo(c1.x, c1.y)
+      context.lineWidth = 1
+      context.strokeStyle = color
+      context.stroke()
+      context.closePath()
+    }
+
+    function drawCircles() {
+      context.clearRect(0, 0, canvas.width, canvas.height)
+
+      if (!enablePacking) {
+        // Just draw the original unpacked circles.
+        for (let c of circles) {
+          drawCircle(c, labToCss(c.color))
+        }
+        // Clear run time display because not packing.
+        runtimeDisplay.innerHTML = ''
+        // Finished
+        return
+      }
+
+      if (!asynchronic) {
+        // Begin record run time.
+        const startTime = window.performance.now()
+        // Clear run time display.
+        runtimeDisplay.innerHTML = ''
+        // Perform circle packing
+        const packed = pack(circles)
+        packed.forEach(c => drawCircle(c, labToCss(c.color)))
+        // Display run time
+        const endTime = window.performance.now()
+        const duration = endTime - startTime
+        runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
+        // Finished
+        return
+      }
+
+      // Semaphore to prevent concurrent drawCircles calls.
+      if (running) {
+        stop = true
+        return
+      }
+      running = true
+
+      // Begin record run time.
+      const startTime = window.performance.now()
+      // Clear run time display.
+      runtimeDisplay.innerHTML = ''
+
+      // Perform circle packing
+      const packed = pack(circles, (c) => {
+        // Draw circles one by one.
+        drawCircle(c, labToCss(c.color))
+        // Stop if necessary.
+        return stop
+      }, (cs, edges) => {
+        // Finally:
+        // Display run time.
+        const endTime = window.performance.now()
+        const duration = endTime - startTime
+        runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
+        // DEBUG Render edges.
+        edges.forEach(edge => drawEdge(edge, 'black'))
+        // Free the semaphore.
+        running = false
+        // Restart if another call requested for a draw during execution.
+        if (stop) {
+          stop = false
+          drawCircles()
+        }
+        // Finished
+      })
+    }
+
+    // Define shapes.
+    const shapeMap = {
+      square: () => {
+        return {
+          x: (0.25 + Math.random() / 2) * canvas.width,
+          y: (0.25 + Math.random() / 2) * canvas.height
+        }
+      },
+      circle: () => {
+        // See https://stackoverflow.com/a/50746409/638546
+        const r = (canvas.width / 4) * Math.sqrt(Math.random())
+        const theta = Math.random() * 2 * Math.PI
+        return {
+          x: (canvas.width / 2) + r * Math.cos(theta),
+          y: (canvas.height / 2) + r * Math.sin(theta)
+        }
+      },
+      point: () => {
+        return {
+          x: canvas.width / 2,
+          y: canvas.height / 2
+        }
+      },
+      pair: () => {
+        return {
+          x: (1 + Math.round(Math.random())) * canvas.width / 3,
+          y: canvas.height / 2
+        }
+      },
+      line: () => {
+        return {
+          x: (0.2 + Math.random() * 0.6) * canvas.width,
+          y: canvas.height / 2
+        }
+      },
+      cross: () => {
+        if (Math.random() < 0.5) {
+          return {
+            x: (0.2 + Math.random() * 0.6) * canvas.width,
+            y: canvas.height / 2
           }
         }
-
-        function drawEdge(edge, color) {
-          const c0 = edge.c0
-          const c1 = edge.c1
-          context.beginPath()
-          context.moveTo(c0.x, c0.y)
-          context.lineTo(c1.x, c1.y)
-          context.lineWidth = 1
-          context.strokeStyle = color
-          context.stroke()
-          context.closePath()
+        return {
+          x: canvas.width / 2,
+          y: (0.2 + Math.random() * 0.6) * canvas.height
         }
-
-        function drawCircles() {
-          context.clearRect(0, 0, canvas.width, canvas.height)
-
-          if (!enablePacking) {
-            // Just draw the original unpacked circles.
-            for (let c of circles) {
-              drawCircle(c, labToCss(c.color))
-            }
-            // Clear run time display because not packing.
-            runtimeDisplay.innerHTML = ''
-            // Finished
-            return
-          }
-
-          if (!asynchronic) {
-            // Begin record run time.
-            const startTime = window.performance.now()
-            // Clear run time display.
-            runtimeDisplay.innerHTML = ''
-            // Perform circle packing
-            const packed = pack(circles)
-            packed.forEach(c => drawCircle(c, labToCss(c.color)))
-            // Display run time
-            const endTime = window.performance.now()
-            const duration = endTime - startTime
-            runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
-            // Finished
-            return
-          }
-
-          // Semaphore to prevent concurrent drawCircles calls.
-          if (running) {
-            stop = true
-            return
-          }
-          running = true
-
-          // Begin record run time.
-          const startTime = window.performance.now()
-          // Clear run time display.
-          runtimeDisplay.innerHTML = ''
-
-          // Perform circle packing
-          const packed = pack(circles, (c) => {
-            // Draw circles one by one.
-            drawCircle(c, labToCss(c.color))
-            // Stop if necessary.
-            return stop
-          }, (cs, edges) => {
-            // Finally:
-            // Display run time.
-            const endTime = window.performance.now()
-            const duration = endTime - startTime
-            runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
-            // DEBUG Render edges.
-            edges.forEach(edge => drawEdge(edge, 'black'))
-            // Free the semaphore.
-            running = false
-            // Restart if another call requested for a draw during execution.
-            if (stop) {
-              stop = false
-              drawCircles()
-            }
-            // Finished
-          })
+      },
+      gaussian: () => {
+        // Box-Muller transform
+        const r = (canvas.width * 0.2) * Math.sqrt(-2 * Math.log(Math.random()))
+        const theta = Math.random() * 2 * Math.PI
+        return {
+          x: (canvas.width / 2) + r * Math.cos(theta),
+          y: (canvas.height / 2) + r * Math.sin(theta)
         }
+      }
+    }
 
-        // Define shapes.
-        const shapeMap = {
-          square: () => {
-            return {
-              x: (0.25 + Math.random() / 2) * canvas.width,
-              y: (0.25 + Math.random() / 2) * canvas.height
-            }
-          },
-          circle: () => {
-            // See https://stackoverflow.com/a/50746409/638546
-            const r = (canvas.width / 4) * Math.sqrt(Math.random())
-            const theta = Math.random() * 2 * Math.PI
-            return {
-              x: (canvas.width / 2) + r * Math.cos(theta),
-              y: (canvas.height / 2) + r * Math.sin(theta)
-            }
-          },
-          point: () => {
-            return {
-              x: canvas.width / 2,
-              y: canvas.height / 2
-            }
-          },
-          pair: () => {
-            return {
-              x: (1 + Math.round(Math.random())) * canvas.width / 3,
-              y: canvas.height / 2
-            }
-          },
-          line: () => {
-            return {
-              x: (0.2 + Math.random() * 0.6) * canvas.width,
-              y: canvas.height / 2
-            }
-          },
-          cross: () => {
-            if (Math.random() < 0.5) {
-              return {
-                x: (0.2 + Math.random() * 0.6) * canvas.width,
-                y: canvas.height / 2
-              }
-            }
-            return {
-              x: canvas.width / 2,
-              y: (0.2 + Math.random() * 0.6) * canvas.height
-            }
-          },
-          gaussian: () => {
-            // Box-Muller transform
-            const r = (canvas.width * 0.2) * Math.sqrt(-2 * Math.log(Math.random()))
-            const theta = Math.random() * 2 * Math.PI
-            return {
-              x: (canvas.width / 2) + r * Math.cos(theta),
-              y: (canvas.height / 2) + r * Math.sin(theta)
-            }
-          }
+    // Generate preferred circles of various sizes
+    const generate = () => {
+      circles = []
+      const genPoint = shapeMap[shape] || shapeMap.square
+      for (let i = 0; i < numCircles; i += 1) {
+        const { x, y } = genPoint()
+        const r = minRadius + Math.random() * (maxRadius - minRadius)
+        const color = {
+          l: 90, // max range 0..100
+          a: (Math.random() - 0.5) * 120, // max range -125..125
+          b: (Math.random() - 0.5) * 120  // max range -125..125
         }
+        circles.push({ x, y, r, color })
+      }
+    }
 
-        // Generate preferred circles of various sizes
-        const generate = () => {
-          circles = []
-          const genPoint = shapeMap[shape] || shapeMap.square
-          for (let i = 0; i < numCircles; i += 1) {
-            const { x, y } = genPoint()
-            const r = minRadius + Math.random() * (maxRadius - minRadius)
-            const color = {
-              l: 90, // max range 0..100
-              a: (Math.random() - 0.5) * 120, // max range -125..125
-              b: (Math.random() - 0.5) * 120  // max range -125..125
-            }
-            circles.push({ x, y, r, color })
-          }
-        }
+    const limit = (v, min, max, fallback) => {
+      if (typeof v === 'number' && !isNaN(v)) {
+        return Math.min(Math.max(v, min), max)
+      }
+      return fallback
+    }
 
-        const limit = (v, min, max, fallback) => {
-          if (typeof v === 'number' && !isNaN(v)) {
-            return Math.min(Math.max(v, min), max)
-          }
-          return fallback
-        }
+    // Form interaction
+    const inputEnablePacking = document.getElementById('enablepacking')
+    const inputNumCircles = document.getElementById('numcircles')
+    const inputMinRadius = document.getElementById('minradius')
+    const inputMaxRadius = document.getElementById('maxradius')
+    const inputShape = document.getElementById('dropshape')
+    const inputAsync = document.getElementById('asyncrun')
+    const inputLabels = document.getElementById('renderlabels')
+    const readForm = () => {
+      // Toggle packing
+      enablePacking = (inputEnablePacking.checked ? true : false)
+      // Number of circles
+      numCircles = limit(parseInt(inputNumCircles.value), 1, 4000, 400)
+      inputNumCircles.value = numCircles // fallback upon unexpected input
+      // Radii
+      const minR = limit(parseInt(inputMinRadius.value), 1, 100, 1)
+      const maxR = limit(parseInt(inputMaxRadius.value), 1, 100, 16)
+      if (minRadius !== minR) {
+        // Minimum radius changed. Ensure max is larger.
+        inputMinRadius.value = minR
+        inputMaxRadius.value = Math.max(minR, maxRadius)
+      }
+      if (maxRadius !== maxR) {
+        // Maximum radius changed. Ensure min is smaller.
+        inputMinRadius.value = Math.min(minRadius, maxR)
+        inputMaxRadius.value = maxR
+      }
+      minRadius = Math.min(minR, maxR)
+      maxRadius = Math.max(minR, maxR)
+      // Shape
+      shape = inputShape.value
+      // Asynchronity
+      asynchronic = (inputAsync.checked ? true : false)
+      // Label rendering
+      renderLabels = (inputLabels.checked ? true : false)
+    }
+    const refresh = () => {
+      readForm()
+      setTimeout(() => {
+        drawCircles()
+      }, 0)
+    }
+    const regenerate = () => {
+      readForm()
+      generate()
+      setTimeout(() => {
+        drawCircles()
+      }, 0)
+    }
+    inputEnablePacking.addEventListener('change', refresh)
+    inputNumCircles.addEventListener('change', regenerate)
+    inputMinRadius.addEventListener('change', regenerate)
+    inputMaxRadius.addEventListener('change', regenerate)
+    inputShape.addEventListener('change', regenerate)
+    inputAsync.addEventListener('change', refresh)
+    inputLabels.addEventListener('change', refresh)
 
-        // Form interaction
-        const inputEnablePacking = document.getElementById('enablepacking')
-        const inputNumCircles = document.getElementById('numcircles')
-        const inputMinRadius = document.getElementById('minradius')
-        const inputMaxRadius = document.getElementById('maxradius')
-        const inputShape = document.getElementById('dropshape')
-        const inputAsync = document.getElementById('asyncrun')
-        const inputLabels = document.getElementById('renderlabels')
-        const readForm = () => {
-          // Toggle packing
-          enablePacking = (inputEnablePacking.checked ? true : false)
-          // Number of circles
-          numCircles = limit(parseInt(inputNumCircles.value), 1, 4000, 400)
-          inputNumCircles.value = numCircles // fallback upon unexpected input
-          // Radii
-          const minR = limit(parseInt(inputMinRadius.value), 1, 100, 1)
-          const maxR = limit(parseInt(inputMaxRadius.value), 1, 100, 16)
-          if (minRadius !== minR) {
-            // Minimum radius changed. Ensure max is larger.
-            inputMinRadius.value = minR
-            inputMaxRadius.value = Math.max(minR, maxRadius)
-          }
-          if (maxRadius !== maxR) {
-            // Maximum radius changed. Ensure min is smaller.
-            inputMinRadius.value = Math.min(minRadius, maxR)
-            inputMaxRadius.value = maxR
-          }
-          minRadius = Math.min(minR, maxR)
-          maxRadius = Math.max(minR, maxR)
-          // Shape
-          shape = inputShape.value
-          // Asynchronity
-          asynchronic = (inputAsync.checked ? true : false)
-          // Label rendering
-          renderLabels = (inputLabels.checked ? true : false)
-        }
-        const refresh = () => {
-          readForm()
-          setTimeout(() => {
-            drawCircles()
-          }, 0)
-        }
-        const regenerate = () => {
-          readForm()
-          generate()
-          setTimeout(() => {
-            drawCircles()
-          }, 0)
-        }
-        inputEnablePacking.addEventListener('change', refresh)
-        inputNumCircles.addEventListener('change', regenerate)
-        inputMinRadius.addEventListener('change', regenerate)
-        inputMaxRadius.addEventListener('change', regenerate)
-        inputShape.addEventListener('change', regenerate)
-        inputAsync.addEventListener('change', refresh)
-        inputLabels.addEventListener('change', refresh)
-
-        // Initial drawing
-        regenerate()
-    </script>
+    // Initial drawing
+    regenerate()
+  </script>
 </body>
 </html>
