@@ -105,6 +105,7 @@ CircleGraph.prototype.addEdges = function (cs) {
 
 CircleGraph.prototype.adjacentEdges = function (edge) {
   // Get edges adjacent to the given edge.
+  // The result does not include the given edge.
   //
   // Parameter:
   //   edge
@@ -122,7 +123,7 @@ CircleGraph.prototype.adjacentEdges = function (edge) {
   const edges1 = Object.values(this.edges[c1.i])
   // Join the edges.
   const edges = edges0.concat(edges1)
-  // Remove the seed edge (exists twice)
+  // Remove the given edge (exists twice)
   return edges.filter(e => e !== edge)
 }
 

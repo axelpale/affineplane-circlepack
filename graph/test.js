@@ -46,7 +46,8 @@ test('graph add clique of edges', (t) => {
   const c2 = { i: 2 }
 
   g.addEdges([c0, c1, c2])
-  t.equal(g.getEdges().length, 3, 'should have created three edges')
+  const allEdges = g.getEdges()
+  t.equal(allEdges.length, 3, 'should have created three edges')
 
   t.ok(g.edges[0][1], 'edge 01 exists')
   t.ok(g.edges[1][0], 'edge 10 exists')
@@ -56,6 +57,11 @@ test('graph add clique of edges', (t) => {
 
   t.ok(g.edges[1][2], 'edge 12 exists')
   t.ok(g.edges[2][1], 'edge 21 exists')
+
+  const adj = g.adjacentEdges(allEdges[0])
+  t.ok(adj.includes(allEdges[1]), 'should include the adjacent edge')
+  t.ok(adj.includes(allEdges[2]), 'should include the adjacent edge')
+  t.notOk(adj.includes(allEdges[0]), 'should not include the given edge')
 
   t.end()
 })
