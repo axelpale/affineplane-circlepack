@@ -3,7 +3,12 @@ const CircleGrid = require('./grid')
 const CircleGraph = require('./graph')
 const BinaryHeap = require('./heap')
 const nearestTangent = require('./circle/nearestTangent')
-const pointDistance = affineplane.point2.distance
+
+const dist2 = (p, q) => {
+  const dx = q.x - p.x
+  const dy = q.y - p.y
+  return dx * dx + dy * dy
+}
 
 const findFreePosition = (grid, graph, c0) => {
   // Find a good tight position for the circle c0
@@ -48,8 +53,7 @@ const findFreePosition = (grid, graph, c0) => {
         // Edges available for tangent generation and traversal.
         edges.forEach(edge => {
           if (!edge.visited) {
-            const d = pointDistance(c0, edge.middle)
-            edgeHeap.push(edge, d)
+            edgeHeap.push(edge, dist2(c0, edge.middle))
             edge.visited = true
             visitedEdges.push(edge)
           }
@@ -60,9 +64,8 @@ const findFreePosition = (grid, graph, c0) => {
         // Store the candidate parent so that we can connect it directly
         // in case it becomes selected.
         nextCandidate.parent = c
-        // OPTIMIZATION? Use d*d? Distance of zero for immediate pop?
-        const d = pointDistance(c0, nextCandidate)
-        candidateHeap.push(nextCandidate, d)
+        // Next round
+        candidateHeap.push(nextCandidate, dist2(c0, nextCandidate))
       }
     } else {
       // The candidate overlaps two or more circles.
@@ -93,8 +96,7 @@ const findFreePosition = (grid, graph, c0) => {
             edge.harden(clique[i]) // too much repetition?
           }
           // Send the edge to tangent circle generation.
-          const d = pointDistance(c0, edge.middle)
-          edgeHeap.push(edge, d)
+          edgeHeap.push(edge, dist2(c0, edge.middle))
           edge.visited = true
           visitedEdges.push(edge)
         }
@@ -109,14 +111,12 @@ const findFreePosition = (grid, graph, c0) => {
       for (let i = 0; i < cs.length; i += 1) {
         const tangent = cs[i]
         tangent.parentEdge = edge
-        const d = pointDistance(c0, tangent)
-        candidateHeap.push(tangent, d)
+        candidateHeap.push(tangent, dist2(c0, tangent))
       }
       // Expand to adjacent edges that might not be reachable via collisions.
       const adjacent = graph.adjacentEdges(edge)
       adjacent.filter(ed => !ed.visited).forEach(adj => {
-        const d = pointDistance(c0, adj.middle)
-        edgeHeap.push(adj, d)
+        edgeHeap.push(adj, dist2(c0, adj.middle))
         adj.visited = true
         visitedEdges.push(adj)
       })
