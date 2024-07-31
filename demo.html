@@ -84,11 +84,13 @@
           context.fillStyle = color
           context.fill()
           context.stroke()
-          context.fillStyle = 'black'
-          const fontsize = (1 + Math.round(radius))
-          context.font = fontsize + 'px serif'
-          const offset = Math.floor(fontsize / 4)
-          context.fillText(circle.i, x - offset, y + offset)
+          if ('i' in circle) {
+            context.fillStyle = 'black'
+            const fontsize = (1 + Math.round(radius))
+            context.font = fontsize + 'px serif'
+            const offset = Math.floor(fontsize / 4)
+            context.fillText(circle.i, x - offset, y + offset)
+          }
         }
 
         function drawCircles() {
