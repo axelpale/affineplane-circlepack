@@ -100,9 +100,12 @@ const findFreePosition = (grid, graph, c0) => {
       })
     }
 
-    // Get edge tangents for next set of candidates.
-    while (edgeHeap.size > 0) {
+    // Travel and visit the edges until some circle candidates are found.
+    while (candidateHeap.size === 0 && edgeHeap.size > 0) {
       const edge = edgeHeap.pop()
+      // Skip edges which were already visited earlier in this while loop.
+      if (edge.visited) continue
+      // Compute possible tangent positions if any for this circle radius.
       const cs = edge.getTangentCircles(c0.r)
       for (let i = 0; i < cs.length; i += 1) {
         const tangent = cs[i]
@@ -112,8 +115,14 @@ const findFreePosition = (grid, graph, c0) => {
       }
       // Visit each edge only once for c0.
       edge.visited = true
-      // Track edges for clean-up
+      // Track visited edges for clean-up.
       visitedEdges.push(edge)
+      // Expand to adjacent edges that might not be reachable via collisions.
+      const adjacent = graph.adjacentEdges(edge)
+      adjacent.filter(ed => !ed.visited).forEach(adj => {
+        const d = pointDistance(c0, adj.middle)
+        edgeHeap.push(adj, d)
+      })
     }
   }
 
