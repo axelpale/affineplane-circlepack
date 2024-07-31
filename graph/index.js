@@ -43,6 +43,13 @@ CircleGraph.prototype.addEdge = function (c0, c1) {
     return
   }
 
+  if (!c0.edges) {
+    c0.edges = []
+  }
+  if (!c1.edges) {
+    c1.edges = []
+  }
+
   // Shorthand
   const edges = this.edges
   // We may or may not create an edge.
@@ -55,11 +62,15 @@ CircleGraph.prototype.addEdge = function (c0, c1) {
     } else {
       edge = new Edge(c0, c1)
       edges[i][j] = edge
+      c0.edges.push(edge)
+      c1.edges.push(edge)
     }
   } else {
     edge = new Edge(c0, c1)
     edges[i] = {}
     edges[i][j] = edge
+    c0.edges.push(edge)
+    c1.edges.push(edge)
   }
 
   // DEBUG
@@ -125,13 +136,12 @@ CircleGraph.prototype.adjacentEdges = function (edge) {
   //
   const result = []
 
-  // Edges
-  const edges0 = Object.values(this.edges[edge.c0.i])
-  const edges1 = Object.values(this.edges[edge.c1.i])
+  // Read edges from circles
+  const edges0 = edge.c0.edges || []
+  const edges1 = edge.c1.edges || []
 
-  let ed
   for (let i = 0; i < edges0.length; i += 1) {
-    ed = edges0[i]
+    const ed = edges0[i]
     // Skip the given edge (exists twice).
     // Also skip the visited edges.
     if (ed !== edge && !ed.visited) {
@@ -140,7 +150,7 @@ CircleGraph.prototype.adjacentEdges = function (edge) {
   }
 
   for (let i = 0; i < edges1.length; i += 1) {
-    ed = edges1[i]
+    const ed = edges1[i]
     // Skip the given edge (exists twice).
     // Also skip the visited edges.
     if (ed !== edge && !ed.visited) {
@@ -183,11 +193,7 @@ CircleGraph.prototype.incidentEdges = function (c) {
   // Return:
   //   an array of Edge
   //
-  const targets = this.edges[c.i]
-  if (targets) {
-    return Object.values(targets)
-  }
-  return []
+  return c.edges || []
 }
 
 module.exports = CircleGraph
