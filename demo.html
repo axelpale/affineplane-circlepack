@@ -172,7 +172,9 @@
         const duration = endTime - startTime
         runtimeDisplay.innerHTML = `Run time: ${duration.toFixed(0)} ms`
         // DEBUG Render edges.
-        edges.forEach(edge => drawEdge(edge, 'black'))
+        if (renderLabels) {
+          edges.forEach(edge => drawEdge(edge, 'black'))
+        }
 
         // Free the semaphore.
         running = false
