@@ -1,5 +1,4 @@
 // Gather all component tests
-require('./circle/apollonius.test')
 require('./circle/innerRadius.test')
 require('./circle/nearestTangent.test')
 require('./graph/test')

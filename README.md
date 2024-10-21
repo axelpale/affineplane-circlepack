@@ -61,7 +61,7 @@ Run only linter:
 
 ## See also
 
-This library uses some tools from [affineplane](https://axelpale.github.io/affineplane/) geometry library.
+This library uses some tools from [affineplane](https://axelpale.github.io/affineplane/) and [apollonius](https://axelpale.github.io/apollonius/) geometry libraries.
 
 
 ## License

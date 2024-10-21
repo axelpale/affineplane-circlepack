@@ -37,6 +37,7 @@
     "uglify-js": "^3.19.0"
   },
   "dependencies": {
-    "affineplane": "^2.19.0"
+    "affineplane": "^2.19.0",
+    "apollonius": "^1.2.1"
   }
 }

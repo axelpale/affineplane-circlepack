@@ -1,6 +1,6 @@
 const affineplane = require('affineplane')
 const innerRadius = require('../circle/innerRadius')
-const apollonius = require('../circle/apollonius')
+const apollonius = require('apollonius')
 const tangentCircle = affineplane.circle2.tangentCircle
 const tangentCircles = affineplane.circle2.tangentCircles
 const pointDistance = affineplane.point2.distance
@@ -126,7 +126,7 @@ Edge.prototype.harden = function (c2) {
   } else {
     // The three circles are not all touching.
     // Find maximum circle that fits them.
-    const maxTangent = apollonius(c0, c1, c2)
+    const maxTangent = apollonius.solve(c0, c1, c2)
     if (!maxTangent) {
       console.log('Cannot find apollonius circle')
       console.log(c0, c1, c2)
